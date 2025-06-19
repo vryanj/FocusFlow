@@ -92,17 +92,16 @@
         </button>
     </div>
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
         <header class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white">Pomodoro Focus</h1>
             <p class="text-gray-600 dark:text-gray-400 mt-2">Your journey to productivity, one Pomodoro at a time.</p>
         </header>
 
-        <main class="flex flex-col lg:grid lg:grid-cols-2 lg:grid-rows-1 gap-8 lg:h-screen">
-            <!-- Timer Section - Order 1 on mobile, Column 1 on desktop -->
-            <div class="order-1 grid gap-8 lg:order-none lg:col-span-1 lg:flex lg:flex-col">
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg lg:flex-shrink-0">
-                    <h2 class="text-2xl font-semibold mb-4 text-center">Timer</h2>
+        <main class="flex flex-col gap-8 max-w-4xl mx-auto">
+            <!-- Timer Section -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Timer</h2>
                     <div class="relative w-48 h-48 mx-auto mb-4">
                         <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 100 100">
                             <circle class="text-gray-200 dark:text-gray-700" stroke-width="7" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
@@ -123,13 +122,13 @@
                     </div>
                 </div>
 
-                <!-- Credits & Perks Section - In same column on desktop, fills remaining space -->
-                <div class="order-3 lg:order-none bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col lg:flex-grow lg:h-auto">
-                    <h2 class="text-2xl font-semibold mb-4 text-center">Credits & Perks</h2>
+            <!-- Credits & Perks Section -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Credits & Perks</h2>
                     <div class="text-center mb-6">
                         <p class="text-lg">Available Credits: <span id="credit-count" class="font-bold text-2xl text-green-500">0</span></p>
                     </div>
-                    <div id="perks-list" class="space-y-4 flex-grow overflow-y-auto pr-2 min-h-[200px]">
+                    <div id="perks-list" class="space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto pr-2">
                         <!-- Perks will be dynamically added here -->
                     </div>
                     <div class="mt-6">
@@ -145,10 +144,9 @@
                         </div>
                     </div>
                 </div>
-            </div>
             
-            <!-- Task Management Section - Order 2 on mobile, Column 2 on desktop -->
-            <div class="order-2 lg:order-none lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg flex flex-col">
+            <!-- Task Management Section -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 text-center">Task Management</h2>
                  <textarea id="task-input" rows="3" placeholder="Jot down your main task for this session here..." class="w-full bg-gray-200 dark:bg-gray-700 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"></textarea>
                 <button id="breakdown-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center gap-2 mb-4">
@@ -159,11 +157,11 @@
                     <h3 class="text-xl font-semibold">Sub-task Checklist</h3>
                     <span id="subtask-progress" class="text-sm font-bold text-indigo-500 bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 px-2.5 py-0.5 rounded-full">0%</span>
                 </div>
-                <div class="flex-grow flex flex-col">
-                    <div id="subtasks-container" class="space-y-3 mb-4 flex-grow">
+                <div class="space-y-4">
+                    <div id="subtasks-container" class="space-y-3 min-h-[200px]">
                         <!-- Generated sub-tasks will appear here -->
                     </div>
-                     <button id="add-subtask-btn" class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 mt-auto">
+                     <button id="add-subtask-btn" class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus-circle"></i>
                         Add Sub-task Manually
                     </button>

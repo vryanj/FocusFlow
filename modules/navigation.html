@@ -1,0 +1,30 @@
+<!-- Navigation - Menu Button and Theme Toggle -->
+<!-- Menu Button and Dropdown -->
+<div class="absolute top-4 left-4 z-20">
+    <button id="menu-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+        <i class="fa-solid fa-bars w-6 h-6 text-lg"></i>
+    </button>
+    
+    <!-- Dropdown Menu -->
+    <div id="menu-dropdown" class="hidden absolute top-12 left-0 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 min-w-[200px] py-2 z-30">
+        <button id="menu-new-session" class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+            <i class="fa-solid fa-plus w-4 h-4"></i>
+            New Session
+        </button>
+        <button id="menu-history" class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+            <i class="fa-solid fa-history w-4 h-4"></i>
+            Session History
+        </button>
+        <button id="menu-restore-perks" class="w-full text-left px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+            <i class="fa-solid fa-redo w-4 h-4"></i>
+            Restore Default Perks
+        </button>
+    </div>
+</div>
+
+<div class="absolute top-4 right-4 z-10 flex gap-2">
+    <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5">
+        <i id="theme-toggle-dark-icon" class="fa-solid fa-moon hidden w-5 h-5"></i>
+        <i id="theme-toggle-light-icon" class="fa-solid fa-sun hidden w-5 h-5"></i>
+    </button>
+</div>

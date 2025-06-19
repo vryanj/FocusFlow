@@ -1,0 +1,22 @@
+<!-- Task Management Section -->
+<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Task Management</h2>
+     <textarea id="task-input" rows="3" placeholder="Jot down your main task for this session here..." class="w-full bg-gray-200 dark:bg-gray-700 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4"></textarea>
+    <button id="breakdown-btn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center gap-2 mb-4">
+        <span class="text-xl">✨</span> Generate Sub-tasks from above
+    </button>
+    <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+    <div class="flex justify-center items-center gap-4 mb-3">
+        <h3 class="text-xl font-semibold">Sub-task Checklist</h3>
+        <span id="subtask-progress" class="text-sm font-bold text-indigo-500 bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-300 px-2.5 py-0.5 rounded-full">0%</span>
+    </div>
+    <div class="space-y-4">
+        <div id="subtasks-container" class="space-y-3 min-h-[200px]">
+            <!-- Generated sub-tasks will appear here -->
+        </div>
+         <button id="add-subtask-btn" class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus-circle"></i>
+            Add Sub-task Manually
+        </button>
+    </div>
+</div>
