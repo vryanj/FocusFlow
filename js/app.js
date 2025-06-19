@@ -229,10 +229,23 @@ function debugPerks() {
 }
 
 // --- Gemini API ---
-const API_KEY = "AIzaSyA10ij9R7C0ZqMKUPmjpAvCrAoy5gGmivE";
+let API_KEY = null;
+
+async function initializeAPI() {
+    if (!API_KEY) {
+        await window.envLoader.load();
+        API_KEY = window.envLoader.get('GOOGLE_API_KEY');
+        
+        if (!API_KEY) {
+            console.error('GOOGLE_API_KEY not found in environment variables');
+            throw new Error('API key not configured');
+        }
+    }
+}
 
 async function callGemini(prompt) {
-     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    await initializeAPI();
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
     const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
     try {
         const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });

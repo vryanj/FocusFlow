@@ -53,7 +53,11 @@ class ModuleLoader {
 
     async loadMainScript() {
         try {
-            // Create and append the main script
+            // Load environment loader first
+            await this.loadScript('js/env-loader.js');
+            console.log('✓ Environment loader loaded');
+            
+            // Then load the main script
             const script = document.createElement('script');
             script.src = 'js/app.js';
             script.onload = () => {
@@ -70,6 +74,16 @@ class ModuleLoader {
         } catch (error) {
             console.error('Error loading main script:', error);
         }
+    }
+
+    loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
     }
 }
 
