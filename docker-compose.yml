@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  pomodoro-app:
+    build: .
+    container_name: pomodoro-pwa
+    ports:
+      - "8081:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html
+    restart: unless-stopped
+    networks:
+      - pomodoro-network
+
+networks:
+  pomodoro-network:
+    driver: bridge

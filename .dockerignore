@@ -1,0 +1,41 @@
+# Docker files
+Dockerfile
+docker-compose.yml
+
+# Development files
+*.log
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Node modules (exclude from Docker)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Source files (not needed in production)
+src/
+scripts/
+tailwind.config.js
+
+# Keep built assets
+!assets/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# Database files (if added later)
+*.db
+*.sqlite
