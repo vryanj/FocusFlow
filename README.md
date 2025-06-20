@@ -1,132 +1,152 @@
-# Pomodoro Focus App - Local Dependencies Setup
+# Pomodoro Focus App 🍅
 
-This project has been updated to use local dependencies instead of CDN resources for better performance, offline capability, and reduced external dependencies.
+A modern, feature-rich Pomodoro timer Progressive Web App (PWA) designed to boost productivity through focused work sessions, smart task management, and a motivating rewards system.
 
-## Prerequisites
+## Why Use This Pomodoro App?
 
-- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
-- **npm** (comes with Node.js)
+**Enhanced Focus & Productivity**
+- Break work into manageable, timed intervals to maintain concentration
+- Reduce mental fatigue with structured break periods
+- Stay in the flow state longer with customizable timer modes
 
-## Quick Setup
+**Smart Task Management**
+- AI-powered task breakdown using Google's Gemini API
+- Automatically generate sub-tasks from complex projects
+- Visual progress tracking with drag-and-drop reordering
+- Never lose track of what needs to be done
 
-Run the setup script to install all dependencies and build assets:
+**Motivating Rewards System**
+- Earn credits for completed Pomodoro sessions
+- Redeem credits for personal rewards and treats
+- Limited inventory system creates urgency and excitement
+- Custom perks tailored to your preferences
 
-```bash
-./setup-local-deps.sh
-```
+**Delightful User Experience**
+- Witty, encouraging popup messages at the end of each session
+- Beautiful dark/light mode themes
+- Responsive design works on any device
+- Offline capability as a Progressive Web App
 
-## Manual Setup
+## Key Features
 
-If you prefer to run commands manually:
+### 🎯 **Smart Timer Modes**
+- **25/5 Pomodoro**: Classic 25-minute focus, 5-minute break
+- **50/10 Extended**: Longer sessions for deep work
+- **Custom Mode**: Set your own focus and break durations
+- Visual timer ring with smooth animations
 
-1. **Install Node.js dependencies:**
+### 📋 **Intelligent Task Management**
+- Manual task entry with sub-task breakdown
+- AI-powered task generation using Google Gemini
+- Drag-and-drop reordering of sub-tasks
+- Progress tracking with completion checkboxes
+- Click-to-edit functionality for easy updates
+
+### 🎁 **Motivating Perks System**
+- Earn 1 credit per completed Pomodoro session
+- Create custom rewards (coffee breaks, social media time, treats)
+- Limited inventory creates scarcity and motivation
+- Smart sorting: affordable perks first, sold-out items last
+- Visual inventory badges with hover tooltips
+
+### 🎨 **Beautiful Interface**
+- Clean, modern design with Tailwind CSS
+- Seamless dark/light mode switching
+- Responsive layout works on desktop, tablet, and mobile
+- Smooth animations and hover effects
+- Color-coded visual feedback for different states
+
+### 📱 **Progressive Web App**
+- Install on any device like a native app
+- Works completely offline
+- Fast loading with service worker caching
+- Push notifications (when supported)
+
+## Installation
+
+### Quick Start
+
+1. **Clone or download** this repository
+2. **Set up Google API** (optional, for AI task generation):
    ```bash
-   npm install
+   cp .env.example .env
+   # Edit .env and add your Google API key
+   ```
+3. **Serve the app** using any web server:
+   ```bash
+   # Using Python
+   python3 -m http.server 8000
+   
+   # Using Node.js
+   npx http-server
+   
+   # Using PHP
+   php -S localhost:8000
+   ```
+4. **Open** `http://localhost:8000` in your browser
+5. **Install as PWA** (optional): Click the install button in your browser
+
+### Google API Setup (Optional)
+
+For AI-powered task breakdown feature:
+
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
    ```
 
-2. **Build CSS assets:**
-   ```bash
-   npm run build-css
+2. Get a Google API key:
+   - Visit [Google AI Studio](https://aistudio.google.com/)
+   - Create a new API key for Gemini
+   - Enable the Gemini API
+
+3. Add your API key to `.env`:
+   ```
+   GOOGLE_API_KEY=your_api_key_here
    ```
 
-3. **Download font files:**
-   ```bash
-   npm run download-fonts
-   ```
+The app works perfectly without the API key - you just won't have AI-powered task generation.
 
-4. **Or run everything at once:**
-   ```bash
-   npm run build
-   ```
+## How It Works
 
-## Development
-
-For active development with auto-rebuilding CSS:
-
-```bash
-npm run dev
-```
-
-This will watch for changes in your Tailwind classes and rebuild the CSS automatically.
-
-## Available Scripts
-
-- `npm run build` - Build CSS and download fonts
-- `npm run build-css` - Build Tailwind CSS only
-- `npm run watch-css` - Watch and rebuild CSS on changes
-- `npm run download-fonts` - Download Inter font files
-- `npm run dev` - Start development mode (watch CSS)
-
-## What Changed
-
-### Before (CDN Dependencies)
-- ❌ Tailwind CSS from `cdn.tailwindcss.com`
-- ❌ Inter font from Google Fonts CDN
-- ❌ Required internet connection
-- ❌ External dependency risks
-
-### After (Local Dependencies)
-- ✅ Tailwind CSS compiled locally in `assets/css/output.css`
-- ✅ Inter font files stored in `assets/fonts/`
-- ✅ Works completely offline
-- ✅ Faster loading (no external requests)
-- ✅ Better caching control
-- ✅ No external dependency risks
+1. **Set Your Task**: Enter what you want to work on
+2. **Generate Sub-tasks**: Use AI or add manually for better organization
+3. **Start Timer**: Choose your preferred Pomodoro mode
+4. **Stay Focused**: Work until the timer ends with a delightful message
+5. **Earn Credits**: Get rewarded for completed sessions
+6. **Redeem Perks**: Spend credits on motivating rewards
+7. **Repeat**: Build a productive habit with the satisfying cycle
 
 ## File Structure
 
 ```
 my-pomodoro/
-├── assets/
-│   ├── css/
-│   │   └── output.css          # Compiled Tailwind CSS
-│   └── fonts/
-│       ├── inter-400.woff2     # Inter Regular
-│       ├── inter-500.woff2     # Inter Medium
-│       ├── inter-600.woff2     # Inter SemiBold
-│       └── inter-700.woff2     # Inter Bold
-├── src/
-│   └── input.css               # Source CSS with Tailwind directives
-├── scripts/
-│   └── download-fonts.js       # Font download script
-├── node_modules/               # Node.js dependencies
-├── package.json                # Project dependencies
-├── tailwind.config.js          # Tailwind configuration
-└── setup-local-deps.sh         # Setup script
+├── index.html              # Main app (single file version)
+├── index-modular.html      # Modular version entry point
+├── modules/                # HTML modules for organization
+│   ├── timer.html
+│   ├── task-management.html
+│   ├── credits-perks.html
+│   ├── modals.html
+│   └── navigation.html
+├── js/                     # JavaScript modules
+│   ├── app.js             # Main application logic
+│   ├── module-loader.js   # Dynamic module loading
+│   └── env-loader.js      # Environment variable handling
+├── manifest.json          # PWA manifest
+├── sw.js                  # Service worker for offline support
+├── .env.example           # Environment template
+└── README.md
 ```
 
-## Docker Integration
+## Browser Support
 
-The local assets work seamlessly with your existing Docker setup. The Docker container will serve the local files from the `assets/` directory.
+- ✅ Chrome 80+
+- ✅ Firefox 75+
+- ✅ Safari 13+
+- ✅ Edge 80+
+- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
 
-## Troubleshooting
+---
 
-**Node.js not found:**
-```bash
-# Install Node.js from https://nodejs.org/
-# Or using package managers:
-# macOS: brew install node
-# Ubuntu: sudo apt install nodejs npm
-```
-
-**Permission denied on setup script:**
-```bash
-chmod +x setup-local-deps.sh
-```
-
-**Build fails:**
-```bash
-# Clean install
-rm -rf node_modules package-lock.json
-npm install
-npm run build
-```
-
-## Benefits
-
-1. **Performance** - No external HTTP requests for CSS/fonts
-2. **Reliability** - No dependency on external CDNs
-3. **Offline** - App works completely offline
-4. **Customization** - Full control over Tailwind configuration
-5. **Caching** - Better browser caching for assets
-6. **Security** - No external resource loading risks
+**Start your focused work journey today!** 🚀

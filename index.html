@@ -101,50 +101,27 @@
         <main class="flex flex-col gap-8 max-w-4xl mx-auto">
             <!-- Timer Section -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Timer</h2>
-                    <div class="relative w-48 h-48 mx-auto mb-4">
-                        <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 100 100">
-                            <circle class="text-gray-200 dark:text-gray-700" stroke-width="7" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
-                            <circle id="timer-ring" class="text-indigo-500 timer-ring" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" style="transform: rotate(-90deg); transform-origin: 50% 50%;" />
-                        </svg>
-                        <div id="time-display" class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-4xl font-bold">
-                            25:00
-                        </div>
-                    </div>
-                     <div id="timer-status" class="text-center text-lg font-medium text-gray-500 dark:text-gray-400 mb-4 h-6"></div>
-                    <div id="timer-modes" class="flex flex-wrap justify-center gap-2 mb-4">
-                        <!-- Modes will be added by JS -->
-                    </div>
-                    <div class="flex justify-center space-x-4">
-                        <button id="start-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Start</button>
-                        <button id="pause-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">Pause</button>
-                        <button id="reset-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Reset</button>
+            <h2 class="text-2xl font-semibold mb-4 text-center">Timer</h2>
+                <div class="relative w-48 h-48 mx-auto mb-4">
+                    <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 100 100">
+                        <circle class="text-gray-200 dark:text-gray-700" stroke-width="7" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
+                        <circle id="timer-ring" class="text-indigo-500 timer-ring" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" style="transform: rotate(-90deg); transform-origin: 50% 50%;" />
+                    </svg>
+                    <div id="time-display" class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-4xl font-bold">
+                        25:00
                     </div>
                 </div>
+                    <div id="timer-status" class="text-center text-lg font-medium text-gray-500 dark:text-gray-400 mb-4 h-6"></div>
+                <div id="timer-modes" class="flex flex-wrap justify-center gap-2 mb-4">
+                    <!-- Modes will be added by JS -->
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button id="start-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Start</button>
+                    <button id="pause-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">Pause</button>
+                    <button id="reset-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Reset</button>
+                </div>
+            </div>
 
-            <!-- Credits & Perks Section -->
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Credits & Perks</h2>
-                    <div class="text-center mb-6">
-                        <p class="text-lg">Available Credits: <span id="credit-count" class="font-bold text-2xl text-green-500">0</span></p>
-                    </div>
-                    <div id="perks-list" class="space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto pr-2">
-                        <!-- Perks will be dynamically added here -->
-                    </div>
-                    <div class="mt-6">
-                        <h3 class="text-xl font-semibold mb-3">Add a Custom Perk</h3>
-                        <div class="flex flex-col gap-2">
-                            <input id="perk-name-input" type="text" placeholder="Perk Name" class="w-full bg-gray-200 dark:bg-gray-700 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            <div class="flex items-center gap-2">
-                                <input id="perk-cost-input" type="number" placeholder="Cost" min="1" class="w-24 bg-gray-200 dark:bg-gray-700 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <button id="add-perk-btn" class="flex-grow bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                                    Add Perk
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            
             <!-- Task Management Section -->
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                 <h2 class="text-2xl font-semibold mb-4 text-center">Task Management</h2>
@@ -164,6 +141,23 @@
                      <button id="add-subtask-btn" class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
                         <i class="fa-solid fa-plus-circle"></i>
                         Add Sub-task Manually
+                    </button>
+                </div>
+            </div>
+
+            <!-- Credits & Perks Section -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Credits & Perks</h2>
+                <div class="text-center mb-6">
+                    <p class="text-lg">Available Credits: <span id="credit-count" class="font-bold text-2xl text-green-500">0</span></p>
+                </div>
+                <div id="perks-list" class="space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto pr-2">
+                    <!-- Perks will be dynamically added here -->
+                </div>
+                <div class="mt-6">
+                    <button id="add-perk-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        Add Perk
                     </button>
                 </div>
             </div>
@@ -219,6 +213,31 @@
             </div>
         </div>
 
+        <!-- Add Perk Modal -->
+        <div id="add-perk-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md mx-auto w-full">
+                <h3 class="text-xl font-semibold mb-4 text-center">Add Perk</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label for="perk-name-modal-input" class="block mb-2 font-medium">Perk Name</label>
+                        <input id="perk-name-modal-input" type="text" placeholder="Enter perk name..." class="w-full bg-gray-200 dark:bg-gray-700 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="perk-cost-modal-input" class="block mb-2 font-medium">Cost (Credits)</label>
+                        <input id="perk-cost-modal-input" type="number" placeholder="Enter cost..." min="1" class="w-full bg-gray-200 dark:bg-gray-700 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="perk-inventory-modal-input" class="block mb-2 font-medium">Inventory (How many available)</label>
+                        <input id="perk-inventory-modal-input" type="number" placeholder="Enter inventory..." min="1" value="3" class="w-full bg-gray-200 dark:bg-gray-700 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button id="perk-modal-cancel" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+                    <button id="perk-modal-save" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Add Perk</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Session History Modal -->
         <div id="session-history-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
             <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl max-w-4xl mx-auto w-full max-h-[90vh] overflow-hidden flex flex-col">
@@ -257,9 +276,15 @@
         const resetBtn = document.getElementById('reset-btn');
         const creditCountEl = document.getElementById('credit-count');
         const perksListEl = document.getElementById('perks-list');
-        const perkNameInput = document.getElementById('perk-name-input');
-        const perkCostInput = document.getElementById('perk-cost-input');
         const addPerkBtn = document.getElementById('add-perk-btn');
+        
+        // Add Perk Modal Elements
+        const addPerkModal = document.getElementById('add-perk-modal');
+        const perkNameModalInput = document.getElementById('perk-name-modal-input');
+        const perkCostModalInput = document.getElementById('perk-cost-modal-input');
+        const perkInventoryModalInput = document.getElementById('perk-inventory-modal-input');
+        const perkModalSave = document.getElementById('perk-modal-save');
+        const perkModalCancel = document.getElementById('perk-modal-cancel');
         const timerStatusEl = document.getElementById('timer-status');
         const taskInput = document.getElementById('task-input');
         const breakdownBtn = document.getElementById('breakdown-btn');
@@ -328,10 +353,10 @@
         // Default perks function
         function getDefaultPerks() {
             return [
-                { name: '15 mins social media', cost: 1 },
-                { name: '15 mins watching movies', cost: 1 },
-                { name: '30 mins workout', cost: 2 },
-                { name: '30 mins walk', cost: 2 }
+                { name: '15 mins social media', cost: 1, inventory: 3 },
+                { name: '15 mins watching movies', cost: 1, inventory: 3 },
+                { name: '30 mins workout', cost: 2, inventory: 2 },
+                { name: '30 mins walk', cost: 2, inventory: 2 }
             ];
         }
 
@@ -385,8 +410,17 @@
                     credits = appData.credits || 0;
                     perks = appData.perks || getDefaultPerks();
                     
+                    // Migrate existing perks to add inventory if missing
+                    perks = perks.map(perk => {
+                        if (perk.inventory === undefined) {
+                            // Add default inventory to existing perks
+                            return { ...perk, inventory: 3 };
+                        }
+                        return perk;
+                    });
+                    
                     console.log('💰 Loaded credits:', credits);
-                    console.log('🎁 Loaded perks:', perks);
+                    console.log('🎁 Loaded perks (with inventory):', perks);
                     
                     // Restore subtasks
                     subtasks = appData.subtasks || [];
@@ -850,10 +884,49 @@
             perksListEl.innerHTML = '';
             perks.forEach((perk, index) => {
                 const perkEl = document.createElement('div');
-                perkEl.className = 'flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg gap-2';
+                const isOutOfStock = perk.inventory !== undefined && perk.inventory <= 0;
+                const cannotAfford = credits < perk.cost;
+                const isDisabled = isOutOfStock || cannotAfford;
+                
+                // Enhanced styling for different states
+                perkEl.className = `flex items-center justify-between p-4 rounded-lg gap-3 transition-all ${
+                    isOutOfStock 
+                        ? 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600' 
+                        : cannotAfford
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800'
+                        : 'bg-white dark:bg-gray-700 border-2 border-green-200 dark:border-green-800 hover:shadow-md'
+                }`;
+                
+                // Better inventory display
+                let inventoryBadge = '';
+                if (perk.inventory !== undefined) {
+                    if (perk.inventory === 0) {
+                        inventoryBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">SOLD OUT</span>`;
+                    } else if (perk.inventory <= 2) {
+                        inventoryBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200">${perk.inventory} LEFT</span>`;
+                    } else {
+                        inventoryBadge = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">${perk.inventory} LEFT</span>`;
+                    }
+                }
+                
+                const buttonText = isOutOfStock ? 'Sold Out' : 'Purchase';
+                const buttonClass = isOutOfStock 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-400' 
+                    : cannotAfford 
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-400' 
+                        : 'bg-blue-500 hover:bg-blue-600 text-white border border-blue-600 hover:border-blue-700';
+                
                 perkEl.innerHTML = `
-                    <div class="flex-grow"><span class="font-medium">${perk.name}</span> <span class="text-sm text-gray-500 dark:text-gray-400">(${perk.cost} credits)</span></div>
-                    <button onclick="purchasePerk(${index})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed shrink-0" ${credits < perk.cost ? 'disabled' : ''}>Purchase</button>
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold text-lg ${isOutOfStock ? 'line-through text-gray-400' : 'text-gray-800 dark:text-white'}">${perk.name}</span>
+                            ${inventoryBadge}
+                        </div>
+                        <div class="text-sm ${isOutOfStock ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300'}">
+                            💰 ${perk.cost} credit${perk.cost > 1 ? 's' : ''}
+                        </div>
+                    </div>
+                    <button onclick="purchasePerk(${index})" class="${buttonClass} font-bold py-2 px-4 rounded-lg shrink-0 transition-all transform hover:scale-105" ${isDisabled ? 'disabled' : ''}>${buttonText}</button>
                 `;
                 perksListEl.appendChild(perkEl);
             });
@@ -861,21 +934,68 @@
             console.log('✅ Rendered', perks.length, 'perks');
         }
         function addPerk() {
-            const name = perkNameInput.value.trim();
-            const cost = parseInt(perkCostInput.value);
-            if (name && cost > 0) { 
-                perks.push({ name, cost }); 
+            // Open the Add Perk modal
+            addPerkModal.classList.remove('hidden');
+            addPerkModal.classList.add('flex');
+            perkNameModalInput.focus();
+        }
+
+        function savePerkFromModal() {
+            const name = perkNameModalInput.value.trim();
+            const cost = parseInt(perkCostModalInput.value);
+            const inventory = parseInt(perkInventoryModalInput.value);
+            
+            if (name && cost > 0 && inventory > 0) { 
+                perks.push({ name, cost, inventory }); 
                 renderPerks(); 
-                perkNameInput.value = ''; 
-                perkCostInput.value = ''; 
+                closePerkModal();
                 saveToLocalStorage(); // Save when perk is added
+                showMessage({mainText: `Perk "${name}" added successfully! (${inventory} available)`});
             } 
-            else { showMessage({mainText: 'Please enter a valid perk name and cost.'}); }
+            else { showMessage({mainText: 'Please enter a valid perk name, cost, and inventory.'}); }
+        }
+
+        function closePerkModal() {
+            addPerkModal.classList.add('hidden');
+            addPerkModal.classList.remove('flex');
+            perkNameModalInput.value = '';
+            perkCostModalInput.value = '';
+            perkInventoryModalInput.value = '3'; // Reset to default
         }
         function purchasePerk(index) {
             const perk = perks[index];
-            if (credits >= perk.cost) { credits -= perk.cost; updateCredits(); showMessage({mainText: `You've purchased "${perk.name}"! Enjoy your break.`}); } 
-            else { showMessage({mainText: "You don't have enough credits."}); }
+            
+            // Check if out of stock
+            if (perk.inventory !== undefined && perk.inventory <= 0) {
+                showMessage({mainText: "This perk is out of stock!"});
+                return;
+            }
+            
+            // Check if user has enough credits
+            if (credits < perk.cost) {
+                showMessage({mainText: "You don't have enough credits."});
+                return;
+            }
+            
+            // Purchase the perk
+            credits -= perk.cost;
+            
+            // Reduce inventory if it exists
+            if (perk.inventory !== undefined) {
+                perk.inventory -= 1;
+            }
+            
+            updateCredits();
+            renderPerks(); // Re-render to update inventory display
+            saveToLocalStorage(); // Save the updated inventory
+            
+            const inventoryMessage = perk.inventory !== undefined && perk.inventory === 0 
+                ? " This perk is now out of stock!" 
+                : "";
+            
+            showMessage({
+                mainText: `You've purchased "${perk.name}"! Enjoy your break.${inventoryMessage}`
+            });
         }
         
         function restoreDefaultPerks() {
@@ -1440,6 +1560,36 @@
             document.getElementById('subtask-modal-cancel').addEventListener('click', () => {
                 addSubtaskModal.classList.add('hidden');
                 addSubtaskModal.classList.remove('flex');
+            });
+
+            // Add Perk Modal event listeners
+            perkModalSave.addEventListener('click', savePerkFromModal);
+            perkModalCancel.addEventListener('click', closePerkModal);
+
+            // Close modal when clicking outside
+            addPerkModal.addEventListener('click', (e) => {
+                if (e.target === addPerkModal) {
+                    closePerkModal();
+                }
+            });
+
+            // Handle Enter key in perk modal inputs
+            perkNameModalInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    perkCostModalInput.focus();
+                }
+            });
+
+            perkCostModalInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    perkInventoryModalInput.focus();
+                }
+            });
+
+            perkInventoryModalInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    savePerkFromModal();
+                }
             });
 
             // Menu event listeners

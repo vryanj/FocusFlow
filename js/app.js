@@ -1,61 +1,89 @@
-// DOM Elements
-const timeDisplay = document.getElementById('time-display');
-const timerRing = document.getElementById('timer-ring');
-const startBtn = document.getElementById('start-btn');
-const pauseBtn = document.getElementById('pause-btn');
-const resetBtn = document.getElementById('reset-btn');
-const creditCountEl = document.getElementById('credit-count');
-const perksListEl = document.getElementById('perks-list');
-const perkNameInput = document.getElementById('perk-name-input');
-const perkCostInput = document.getElementById('perk-cost-input');
-const addPerkBtn = document.getElementById('add-perk-btn');
-const timerStatusEl = document.getElementById('timer-status');
-const taskInput = document.getElementById('task-input');
-const breakdownBtn = document.getElementById('breakdown-btn');
-const subtasksContainer = document.getElementById('subtasks-container');
-const subtaskProgressEl = document.getElementById('subtask-progress');
-const addSubtaskBtn = document.getElementById('add-subtask-btn');
-const timerModesContainer = document.getElementById('timer-modes');
-const themeToggleBtn = document.getElementById('theme-toggle');
-const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+// DOM Elements (initialized after modules load)
+let timeDisplay, timerRing, startBtn, pauseBtn, resetBtn, creditCountEl, perksListEl, addPerkBtn;
+let addPerkModal, perkNameModalInput, perkCostModalInput, perkInventoryModalInput, perkModalSave, perkModalCancel;
+let timerStatusEl, taskInput, breakdownBtn, subtasksContainer, subtaskProgressEl, addSubtaskBtn, timerModesContainer;
+let themeToggleBtn, themeToggleDarkIcon, themeToggleLightIcon;
+let messageModal, modalMessage, modalEmojis, modalSubMessage, modalCountdown, modalCountdownTimer, modalCloseBtn;
+let customTimerModal, customFocusInput, customBreakInput, customTimerSave, customTimerCancel;
+let addSubtaskModal, subtaskModalTitle, subtaskInput, subtaskModalSave, subtaskModalCancel;
+let sessionHistoryBtn, newSessionBtn, sessionHistoryModal, sessionHistoryClose, sessionsListEl;
+let clearAllSessionsBtn, exportSessionsBtn, menuToggle, menuDropdown, menuNewSession, menuHistory, menuRestorePerks;
 
-// Modal Elements
-const messageModal = document.getElementById('message-modal');
-const modalMessage = document.getElementById('modal-message');
-const modalEmojis = document.getElementById('modal-emojis');
-const modalSubMessage = document.getElementById('modal-sub-message');
-const modalCountdown = document.getElementById('modal-countdown');
-const modalCountdownTimer = document.getElementById('modal-countdown-timer');
-const modalCloseBtn = document.getElementById('modal-close-btn');
-const customTimerModal = document.getElementById('custom-timer-modal');
-const customFocusInput = document.getElementById('custom-focus-input');
-const customBreakInput = document.getElementById('custom-break-input');
-const customTimerSave = document.getElementById('custom-timer-save');
-const customTimerCancel = document.getElementById('custom-timer-cancel');
-
-// Add Subtask Modal Elements
-const addSubtaskModal = document.getElementById('add-subtask-modal');
-const subtaskModalTitle = document.getElementById('subtask-modal-title');
-const subtaskInput = document.getElementById('subtask-input');
-const subtaskModalSave = document.getElementById('subtask-modal-save');
-const subtaskModalCancel = document.getElementById('subtask-modal-cancel');
-
-// Session Management Elements
-const sessionHistoryBtn = document.getElementById('session-history-btn');
-const newSessionBtn = document.getElementById('new-session-btn');
-const sessionHistoryModal = document.getElementById('session-history-modal');
-const sessionHistoryClose = document.getElementById('session-history-close');
-const sessionsListEl = document.getElementById('sessions-list');
-const clearAllSessionsBtn = document.getElementById('clear-all-sessions');
-const exportSessionsBtn = document.getElementById('export-sessions');
-
-// Menu Elements
-const menuToggle = document.getElementById('menu-toggle');
-const menuDropdown = document.getElementById('menu-dropdown');
-const menuNewSession = document.getElementById('menu-new-session');
-const menuHistory = document.getElementById('menu-history');
-const menuRestorePerks = document.getElementById('menu-restore-perks');
+// Function to initialize DOM elements after modules are loaded
+function initializeDOMElements() {
+    // Timer Elements
+    timeDisplay = document.getElementById('time-display');
+    timerRing = document.getElementById('timer-ring');
+    startBtn = document.getElementById('start-btn');
+    pauseBtn = document.getElementById('pause-btn');
+    resetBtn = document.getElementById('reset-btn');
+    timerStatusEl = document.getElementById('timer-status');
+    timerModesContainer = document.getElementById('timer-modes');
+    
+    // Credits & Perks Elements
+    creditCountEl = document.getElementById('credit-count');
+    perksListEl = document.getElementById('perks-list');
+    addPerkBtn = document.getElementById('add-perk-btn');
+    
+    // Add Perk Modal Elements
+    addPerkModal = document.getElementById('add-perk-modal');
+    perkNameModalInput = document.getElementById('perk-name-modal-input');
+    perkCostModalInput = document.getElementById('perk-cost-modal-input');
+    perkInventoryModalInput = document.getElementById('perk-inventory-modal-input');
+    perkModalSave = document.getElementById('perk-modal-save');
+    perkModalCancel = document.getElementById('perk-modal-cancel');
+    
+    // Task Management Elements
+    taskInput = document.getElementById('task-input');
+    breakdownBtn = document.getElementById('breakdown-btn');
+    subtasksContainer = document.getElementById('subtasks-container');
+    subtaskProgressEl = document.getElementById('subtask-progress');
+    addSubtaskBtn = document.getElementById('add-subtask-btn');
+    
+    // Theme Elements
+    themeToggleBtn = document.getElementById('theme-toggle');
+    themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+    
+    // Modal Elements
+    messageModal = document.getElementById('message-modal');
+    modalMessage = document.getElementById('modal-message');
+    modalEmojis = document.getElementById('modal-emojis');
+    modalSubMessage = document.getElementById('modal-sub-message');
+    modalCountdown = document.getElementById('modal-countdown');
+    modalCountdownTimer = document.getElementById('modal-countdown-timer');
+    modalCloseBtn = document.getElementById('modal-close-btn');
+    customTimerModal = document.getElementById('custom-timer-modal');
+    customFocusInput = document.getElementById('custom-focus-input');
+    customBreakInput = document.getElementById('custom-break-input');
+    customTimerSave = document.getElementById('custom-timer-save');
+    customTimerCancel = document.getElementById('custom-timer-cancel');
+    
+    // Add Subtask Modal Elements
+    addSubtaskModal = document.getElementById('add-subtask-modal');
+    subtaskModalTitle = document.getElementById('subtask-modal-title');
+    subtaskInput = document.getElementById('subtask-input');
+    subtaskModalSave = document.getElementById('subtask-modal-save');
+    subtaskModalCancel = document.getElementById('subtask-modal-cancel');
+    
+    // Session Management Elements
+    sessionHistoryBtn = document.getElementById('session-history-btn');
+    newSessionBtn = document.getElementById('new-session-btn');
+    sessionHistoryModal = document.getElementById('session-history-modal');
+    sessionHistoryClose = document.getElementById('session-history-close');
+    sessionsListEl = document.getElementById('sessions-list');
+    clearAllSessionsBtn = document.getElementById('clear-all-sessions');
+    exportSessionsBtn = document.getElementById('export-sessions');
+    
+    // Menu Elements
+    menuToggle = document.getElementById('menu-toggle');
+    menuDropdown = document.getElementById('menu-dropdown');
+    menuNewSession = document.getElementById('menu-new-session');
+    menuHistory = document.getElementById('menu-history');
+    menuRestorePerks = document.getElementById('menu-restore-perks');
+    
+    console.log('🔗 DOM elements initialized after module loading');
+}
 
 
 // Timer State
@@ -77,10 +105,12 @@ let activeMode = 'pomodoro';
 // Default perks function
 function getDefaultPerks() {
     return [
-        { name: '15 mins social media', cost: 1 },
-        { name: '15 mins watching movies', cost: 1 },
-        { name: '30 mins workout', cost: 2 },
-        { name: '30 mins walk', cost: 2 }
+        { name: '15 mins social media', cost: 1, inventory: 3 },
+        { name: '15 mins watching movies', cost: 1, inventory: 3 },
+        { name: '30 mins workout', cost: 2, inventory: 2 },
+        { name: '30 mins walk', cost: 2, inventory: 2 },
+        { name: 'Premium Netflix session', cost: 3, inventory: 0 }, // Sold out for testing
+        { name: 'Expensive coffee break', cost: 5, inventory: 0 }   // Another sold out for testing
     ];
 }
 
@@ -134,8 +164,17 @@ function loadFromLocalStorage() {
             credits = appData.credits || 0;
             perks = appData.perks || getDefaultPerks();
             
+            // Migrate existing perks to add inventory if missing
+            perks = perks.map(perk => {
+                if (perk.inventory === undefined) {
+                    // Add default inventory to existing perks
+                    return { ...perk, inventory: 3 };
+                }
+                return perk;
+            });
+            
             console.log('💰 Loaded credits:', credits);
-            console.log('🎁 Loaded perks:', perks);
+            console.log('🎁 Loaded perks (with inventory):', perks);
             
             // Restore subtasks
             subtasks = appData.subtasks || [];
@@ -441,7 +480,7 @@ function renderSubtasks() {
     } else {
         subtasks.forEach((task, index) => {
             const taskEl = document.createElement('div');
-            taskEl.className = 'flex items-center bg-gray-100 dark:bg-gray-700 p-2 rounded-lg gap-2';
+            taskEl.className = 'flex items-center bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-600 p-3 rounded-lg gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
             taskEl.draggable = true;
             taskEl.dataset.index = index;
             taskEl.innerHTML = `
@@ -588,43 +627,146 @@ function updateCredits() {
     saveToLocalStorage(); // Save when credits change
 }
 function renderPerks() {
-    console.log('🎁 Rendering perks:', perks);
-    console.log('📍 perksListEl:', perksListEl);
-    
     if (!perksListEl) {
         console.error('❌ perksListEl not found!');
         return;
     }
     
+    // Sort perks: available items first (by cost ascending, then alphabetically), sold out items last
+    const sortedPerks = [...perks].sort((a, b) => {
+        const aOutOfStock = a.inventory !== undefined && a.inventory <= 0;
+        const bOutOfStock = b.inventory !== undefined && b.inventory <= 0;
+        
+        // Move sold out items to the bottom
+        if (aOutOfStock && !bOutOfStock) return 1;  // a is sold out, b is not -> a goes after b
+        if (!aOutOfStock && bOutOfStock) return -1; // a is not sold out, b is -> a goes before b
+        
+        // For items with same availability status, sort by cost first, then alphabetically
+        if (a.cost !== b.cost) {
+            return a.cost - b.cost; // Cost ascending
+        }
+        
+        return a.name.localeCompare(b.name); // Alphabetical ascending
+    });
+    
+    console.log('🔄 Sorted perks:', sortedPerks.map(p => `${p.name} (${p.cost}c, ${p.inventory || 0} left)`));
+    
     perksListEl.innerHTML = '';
-    perks.forEach((perk, index) => {
+    sortedPerks.forEach((perk) => {
+        // Find original index for the onclick handler
+        const originalIndex = perks.findIndex(p => p === perk);
+        
         const perkEl = document.createElement('div');
-        perkEl.className = 'flex items-center justify-between bg-gray-100 dark:bg-gray-700 p-3 rounded-lg gap-2';
+        const isOutOfStock = perk.inventory !== undefined && perk.inventory <= 0;
+        const cannotAfford = credits < perk.cost;
+        const isDisabled = isOutOfStock || cannotAfford;
+        
+        // Enhanced styling for different states with better backgrounds
+        perkEl.className = `flex items-center justify-between p-4 rounded-lg gap-3 transition-all cursor-pointer ${
+            isOutOfStock 
+                ? 'bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700' 
+                : cannotAfford
+                ? 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/40'
+                : 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md'
+        }`;
+        
+        // Clean circular inventory badge
+        let inventoryBadge = '';
+        if (perk.inventory !== undefined) {
+            if (perk.inventory === 0) {
+                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-red-500 text-white" title="Sold Out">×</span>`;
+            } else if (perk.inventory <= 2) {
+                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-orange-500 text-white" title="${perk.inventory} Left">${perk.inventory}</span>`;
+            } else {
+                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-green-500 text-white" title="${perk.inventory} Left">${perk.inventory}</span>`;
+            }
+        }
+        
+        const buttonText = isOutOfStock ? 'Sold Out' : 'Purchase';
+        const buttonClass = isOutOfStock 
+            ? 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-400' 
+            : cannotAfford 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-400' 
+                : 'bg-blue-500 hover:bg-blue-600 text-white border border-blue-600 hover:border-blue-700';
+        
         perkEl.innerHTML = `
-            <div class="flex-grow"><span class="font-medium">${perk.name}</span> <span class="text-sm text-gray-500 dark:text-gray-400">(${perk.cost} credits)</span></div>
-            <button onclick="purchasePerk(${index})" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed shrink-0" ${credits < perk.cost ? 'disabled' : ''}>Purchase</button>
+            <div class="flex-grow">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-semibold text-lg ${isOutOfStock ? 'line-through text-gray-400' : 'text-gray-800 dark:text-white'}">${perk.name}</span>
+                    ${inventoryBadge}
+                </div>
+                <div class="text-sm ${isOutOfStock ? 'text-gray-400' : 'text-gray-600 dark:text-gray-300'}">
+                    💰 ${perk.cost} credit${perk.cost > 1 ? 's' : ''}
+                </div>
+            </div>
+            <button onclick="purchasePerk(${originalIndex})" class="${buttonClass} font-bold py-2 px-4 rounded-lg shrink-0 transition-all transform hover:scale-105" ${isDisabled ? 'disabled' : ''}>${buttonText}</button>
         `;
         perksListEl.appendChild(perkEl);
     });
-    
-    console.log('✅ Rendered', perks.length, 'perks');
 }
 function addPerk() {
-    const name = perkNameInput.value.trim();
-    const cost = parseInt(perkCostInput.value);
-    if (name && cost > 0) { 
-        perks.push({ name, cost }); 
+    // Open the Add Perk modal
+    addPerkModal.classList.remove('hidden');
+    addPerkModal.classList.add('flex');
+    perkNameModalInput.focus();
+}
+
+function savePerkFromModal() {
+    const name = perkNameModalInput.value.trim();
+    const cost = parseInt(perkCostModalInput.value);
+    const inventory = parseInt(perkInventoryModalInput.value);
+    
+    if (name && cost > 0 && inventory > 0) { 
+        perks.push({ name, cost, inventory }); 
         renderPerks(); 
-        perkNameInput.value = ''; 
-        perkCostInput.value = ''; 
+        closePerkModal();
         saveToLocalStorage(); // Save when perk is added
+        showMessage({mainText: `Perk "${name}" added successfully! (${inventory} available)`});
     } 
-    else { showMessage({mainText: 'Please enter a valid perk name and cost.'}); }
+    else { showMessage({mainText: 'Please enter a valid perk name, cost, and inventory.'}); }
+}
+
+function closePerkModal() {
+    addPerkModal.classList.add('hidden');
+    addPerkModal.classList.remove('flex');
+    perkNameModalInput.value = '';
+    perkCostModalInput.value = '';
+    perkInventoryModalInput.value = '3'; // Reset to default
 }
 function purchasePerk(index) {
     const perk = perks[index];
-    if (credits >= perk.cost) { credits -= perk.cost; updateCredits(); showMessage({mainText: `You've purchased "${perk.name}"! Enjoy your break.`}); } 
-    else { showMessage({mainText: "You don't have enough credits."}); }
+    
+    // Check if out of stock
+    if (perk.inventory !== undefined && perk.inventory <= 0) {
+        showMessage({mainText: "This perk is out of stock!"});
+        return;
+    }
+    
+    // Check if user has enough credits
+    if (credits < perk.cost) {
+        showMessage({mainText: "You don't have enough credits."});
+        return;
+    }
+    
+    // Purchase the perk
+    credits -= perk.cost;
+    
+    // Reduce inventory if it exists
+    if (perk.inventory !== undefined) {
+        perk.inventory -= 1;
+    }
+    
+    updateCredits();
+    renderPerks(); // Re-render to update inventory display
+    saveToLocalStorage(); // Save the updated inventory
+    
+    const inventoryMessage = perk.inventory !== undefined && perk.inventory === 0 
+        ? " This perk is now out of stock!" 
+        : "";
+    
+    showMessage({
+        mainText: `You've purchased "${perk.name}"! Enjoy your break.${inventoryMessage}`
+    });
 }
 
 function restoreDefaultPerks() {
@@ -1134,6 +1276,9 @@ function hideMenu() {
 function initializeApp() {
     console.log('🎯 Initializing Pomodoro App...');
     
+    // Initialize DOM elements first (after modules are loaded)
+    initializeDOMElements();
+    
     // Initialize theme icons function
     const updateThemeIcons = () => {
         if (document.documentElement.classList.contains('dark')) {
@@ -1173,11 +1318,6 @@ function initializeApp() {
                 console.log('SW registration failed: ', registrationError);
             });
     }
-    
-    console.log('✅ Pomodoro App initialized successfully');
-    
-    // Setup event listeners
-    setupEventListeners();
     
     console.log('✅ Pomodoro App initialized successfully');
 }
@@ -1223,6 +1363,44 @@ function setupEventListeners() {
     if (customTimerCancel) customTimerCancel.addEventListener('click', hideCustomTimerModal);
     if (subtaskModalSave) subtaskModalSave.addEventListener('click', saveSubtaskFromModal);
     if (subtaskModalCancel) subtaskModalCancel.addEventListener('click', hideAddSubtaskModal);
+    
+    // Add Perk Modal event listeners
+    if (perkModalSave) perkModalSave.addEventListener('click', savePerkFromModal);
+    if (perkModalCancel) perkModalCancel.addEventListener('click', closePerkModal);
+
+    // Close perk modal when clicking outside
+    if (addPerkModal) {
+        addPerkModal.addEventListener('click', (e) => {
+            if (e.target === addPerkModal) {
+                closePerkModal();
+            }
+        });
+    }
+
+    // Handle Enter key in perk modal inputs
+    if (perkNameModalInput) {
+        perkNameModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (perkCostModalInput) perkCostModalInput.focus();
+            }
+        });
+    }
+
+    if (perkCostModalInput) {
+        perkCostModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (perkInventoryModalInput) perkInventoryModalInput.focus();
+            }
+        });
+    }
+
+    if (perkInventoryModalInput) {
+        perkInventoryModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                savePerkFromModal();
+            }
+        });
+    }
     
     // Handle Enter key in subtask input
     if (subtaskInput) {
