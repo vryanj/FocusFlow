@@ -2,7 +2,7 @@
 let timeDisplay, timerRing, startBtn, pauseBtn, resetBtn, creditCountEl, perksListEl, addPerkBtn;
 let addPerkModal, perkNameModalInput, perkCostModalInput, perkInventoryModalInput, perkModalSave, perkModalCancel;
 let timerStatusEl, taskInput, breakdownBtn, subtasksContainer, subtaskProgressEl, addSubtaskBtn, timerModesContainer;
-let themeToggleBtn, themeToggleDarkIcon, themeToggleLightIcon;
+let themeToggleBtn, themeToggleDarkIcon, themeToggleLightIcon, debugStartTimeEl;
 let messageModal, modalMessage, modalEmojis, modalSubMessage, modalCountdown, modalCountdownTimer, modalCloseBtn;
 let customTimerModal, customFocusInput, customBreakInput, customTimerSave, customTimerCancel;
 let addSubtaskModal, subtaskModalTitle, subtaskInput, subtaskModalSave, subtaskModalCancel;
@@ -19,6 +19,7 @@ function initializeDOMElements() {
     resetBtn = document.getElementById('reset-btn');
     timerStatusEl = document.getElementById('timer-status');
     timerModesContainer = document.getElementById('timer-modes');
+    debugStartTimeEl = document.getElementById('debug-start-time');
     
     // Credits & Perks Elements
     creditCountEl = document.getElementById('credit-count');
@@ -136,11 +137,11 @@ function saveToLocalStorage() {
             activeMode: activeMode,
             customMode: timerModes.custom,
             timerState: {
-                timeRemaining: typeof timeRemaining !== 'undefined' ? timeRemaining : 0,
-                isRunning: typeof isRunning !== 'undefined' ? isRunning : false,
-                isPaused: typeof isPaused !== 'undefined' ? isPaused : false,
-                isBreak: typeof isBreak !== 'undefined' ? isBreak : false,
-                startTime: typeof startTime !== 'undefined' ? startTime : null
+                timeLeft: timeLeft,
+                isRunning: isRunning,
+                isPaused: isPaused,
+                isBreak: isBreak,
+                sessionStartTime: sessionStartTime
             },
             sessionHistory: sessionHistory // Add session history to saved data
         };
@@ -190,6 +191,48 @@ function loadFromLocalStorage() {
             // Restore custom timer settings
             if (appData.customMode) {
                 timerModes.custom = appData.customMode;
+            }
+            
+            // Restore timer state
+            if (appData.timerState) {
+                timeLeft = appData.timerState.timeLeft || (timerModes[activeMode].focus * 60);
+                isRunning = appData.timerState.isRunning || false;
+                isPaused = appData.timerState.isPaused || false;
+                isBreak = appData.timerState.isBreak || false;
+                sessionStartTime = appData.timerState.sessionStartTime || null;
+                
+                console.log('⏰ Restored timer state:', {
+                    timeLeft,
+                    isRunning,
+                    isPaused,
+                    isBreak,
+                    sessionStartTime
+                });
+                
+                // If timer was running when saved, calculate elapsed time and resume
+                if (isRunning && sessionStartTime) {
+                    const elapsedTime = (Date.now() - sessionStartTime) / 1000;
+                    const totalDuration = (isBreak ? timerModes[activeMode].break : timerModes[activeMode].focus) * 60;
+                    timeLeft = Math.max(0, totalDuration - elapsedTime);
+                    
+                    if (timeLeft > 0) {
+                        console.log(`🔄 Resuming timer with ${Math.floor(timeLeft / 60)}:${String(Math.floor(timeLeft % 60)).padStart(2, '0')} remaining`);
+                        // Will resume after DOM elements are initialized
+                    } else {
+                        console.log('⏰ Timer would have finished, completing session');
+                        isRunning = false;
+                        isPaused = false;
+                        // Will complete after DOM elements are initialized
+                        setTimeout(() => completeTimer(), 100);
+                    }
+                }
+            } else {
+                // No saved timer state, ensure we're in default state
+                timeLeft = timerModes[activeMode].focus * 60;
+                isRunning = false;
+                isPaused = false;
+                isBreak = false;
+                sessionStartTime = null;
             }
             
             // Restore session history
@@ -353,21 +396,67 @@ function renderTimerModeButtons() {
 function updateDisplay() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    const totalDuration = (isBreak ? timerModes[activeMode].break : timerModes[activeMode].focus) * 60;
-    const progress = totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0;
-    const dashoffset = ringCircumference * (1 - progress);
-    timerRing.style.strokeDashoffset = dashoffset;
+    if (timeDisplay) {
+        timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    if (timerRing) {
+        const totalDuration = (isBreak ? timerModes[activeMode].break : timerModes[activeMode].focus) * 60;
+        const progress = totalDuration > 0 ? (totalDuration - timeLeft) / totalDuration : 0;
+        const dashoffset = ringCircumference * (1 - progress);
+        timerRing.style.strokeDashoffset = dashoffset;
+    }
+    
+    // Update debug start time display
+    if (debugStartTimeEl) {
+        if (sessionStartTime) {
+            const startDate = new Date(sessionStartTime);
+            debugStartTimeEl.textContent = `Started: ${startDate.toLocaleTimeString()} | Elapsed: ${Math.floor((Date.now() - sessionStartTime) / 1000)}s`;
+        } else {
+            debugStartTimeEl.textContent = 'No active session';
+        }
+    }
+    
+    // Update button states based on timer state
+    if (startBtn && pauseBtn && timerStatusEl) {
+        if (isRunning) {
+            startBtn.classList.add('hidden');
+            pauseBtn.classList.remove('hidden');
+            timerStatusEl.textContent = isBreak ? 'Break Time!' : 'Focus Time!';
+        } else if (isPaused) {
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+            startBtn.textContent = 'Resume';
+            timerStatusEl.textContent = (isBreak ? 'Break Time!' : 'Focus Time!') + ' (Paused)';
+        } else {
+            startBtn.classList.remove('hidden');
+            pauseBtn.classList.add('hidden');
+            startBtn.textContent = 'Start';
+            timerStatusEl.textContent = '';
+        }
+    }
+    
+    // Update timer ring color based on break/focus state
+    if (timerRing) {
+        timerRing.classList.remove('text-green-500', 'text-indigo-500');
+        timerRing.classList.add(isBreak ? 'text-green-500' : 'text-indigo-500');
+    }
 }
 
 function startTimer() {
-    if (isRunning) return;
+    console.log('▶️ startTimer called, isRunning:', isRunning, 'isBreak:', isBreak, 'timeLeft:', timeLeft);
+    
+    if (isRunning) {
+        console.log('⚠️ Timer already running, skipping start');
+        return;
+    }
     
     // Create new session if none exists and we're starting a focus timer
     if (!currentSessionData && !isBreak) {
         createNewSession();
     }
     
+    console.log('🚀 Starting timer...', isBreak ? 'BREAK' : 'FOCUS');
     isRunning = true;
     isPaused = false;
     sessionStartTime = Date.now() - ((isBreak ? timerModes[activeMode].break * 60 : timerModes[activeMode].focus * 60) - timeLeft) * 1000;
@@ -376,12 +465,20 @@ function startTimer() {
     timerStatusEl.textContent = isBreak ? 'Break Time!' : 'Focus Time!';
     timerRing.classList.remove('text-green-500', 'text-indigo-500');
     timerRing.classList.add(isBreak ? 'text-green-500' : 'text-indigo-500');
+    
+    // Save timer state
+    saveToLocalStorage();
+    
+    console.log('✅ Timer started successfully');
+    
     timer = setInterval(() => {
         if (!isPaused) {
             timeLeft--;
             updateDisplay();
             if (timeLeft <= 0) {
+                console.log('⏰ Timer reached 0, clearing interval and handling timer end...');
                 clearInterval(timer);
+                timer = null; // Clear the timer reference
                 handleTimerEnd();
             }
         }
@@ -389,20 +486,31 @@ function startTimer() {
 }
 
 function pauseTimer() {
+    console.log('⏸️ pauseTimer called');
     isPaused = true;
     isRunning = false;
     clearInterval(timer);
+    timer = null; // Clear the timer reference
     pauseBtn.classList.add('hidden');
     startBtn.classList.remove('hidden');
     startBtn.textContent = 'Resume';
     timerStatusEl.textContent += ' (Paused)';
+    console.log('✅ Timer paused successfully');
+    
+    // Save timer state
+    saveToLocalStorage();
+    
+    // Update display to ensure UI is in sync
+    updateDisplay();
 }
 
 function resetTimer() {
     clearInterval(timer);
+    timer = null; // Clear the timer reference
     isRunning = false;
     isPaused = false;
     isBreak = false;
+    sessionStartTime = null;
     timeLeft = timerModes[activeMode].focus * 60;
     updateDisplay();
     startBtn.classList.remove('hidden');
@@ -411,10 +519,20 @@ function resetTimer() {
     timerStatusEl.textContent = '';
     timerRing.classList.remove('text-green-500');
     timerRing.classList.add('text-indigo-500');
+    
+    // Save timer state
+    saveToLocalStorage();
 }
 
 async function handleTimerEnd() {
+    console.log('🎯 handleTimerEnd called, isBreak:', isBreak);
+    
     if (!isBreak) {
+        console.log('⏸️ Focus session ended, pausing timer state...');
+        // Pause the timer state properly
+        isPaused = true;
+        isRunning = false;
+        
         const sessionDuration = (Date.now() - sessionStartTime) / 1000;
         const plannedDuration = timerModes[activeMode].focus * 60;
         
@@ -434,10 +552,36 @@ async function handleTimerEnd() {
             updateCurrentSession();
         }
         
+        // Prepare for break timer (but don't start yet)
+        console.log('🔄 Switching to break mode...');
+        isBreak = true;
+        timeLeft = timerModes[activeMode].break * 60;
+        sessionStartTime = null; // Reset for break timer
+        
+        // Keep timer in paused state until modal closes
+        isPaused = true;
+        isRunning = false;
+        
+        // Update UI to show break is ready and paused
+        updateDisplay();
+        
+        console.log('📱 Showing completion modal...');
+        // Show completion message and auto-start break when modal closes
         showMessage({
-            mainText: `You've earned ${creditsEarned} credit(s)!`,
-            subText: funnyMessage,
-            autoClose: false
+            mainText: `You've earned ${creditsEarned} credit(s)! 🎉`,
+            subText: `${funnyMessage} Break time will start when you close this!`,
+            autoClose: true,
+            onClose: () => {
+                console.log('🚪 Modal closed, starting break timer...');
+                console.log('📊 Timer state before start: isPaused=', isPaused, 'isRunning=', isRunning, 'isBreak=', isBreak);
+                // Simulate start button click to properly start the timer
+                if (startBtn) {
+                    console.log('🟢 Clicking start button to begin break...');
+                    startBtn.click();
+                } else {
+                    console.error('❌ Start button not found!');
+                }
+            }
         });
         
         // --- Session History Logging ---
@@ -450,13 +594,43 @@ async function handleTimerEnd() {
         };
         sessionHistory.push(sessionLog);
         saveToLocalStorage(); // Save session history to localStorage
-
-        isBreak = true;
-        timeLeft = timerModes[activeMode].break * 60;
-        startTimer();
     } else {
-        showMessage({ mainText: "Break's over! Back to the grind.", subText: "🔥 Let's get back to work! 💪" });
-        resetTimer();
+        // Break is over - pause the timer properly
+        console.log('⏸️ Break session ended, pausing timer state...');
+        isPaused = true;
+        isRunning = false;
+        
+        // Prepare for focus
+        console.log('🔄 Switching to focus mode...');
+        isBreak = false;
+        timeLeft = timerModes[activeMode].focus * 60;
+        sessionStartTime = null;
+        
+        // Keep timer in paused state
+        isPaused = true;
+        isRunning = false;
+        
+        // Update UI
+        updateDisplay();
+        
+        console.log('📱 Showing break-over modal...');
+        showMessage({ 
+            mainText: "Break's over! Ready for another focus session?", 
+            subText: "🔥 Click Start when you're ready to work! 💪",
+            autoClose: true,
+            onClose: () => {
+                // Don't auto-start focus timer, let user start manually
+                console.log('🚪 Modal closed. Ready for next focus session.');
+                // Reset to fresh state - not paused, ready to start
+                if (startBtn) {
+                    isPaused = false;
+                    isRunning = false;
+                    startBtn.textContent = 'Start';
+                    updateDisplay();
+                    console.log('✅ Focus timer ready to start manually');
+                }
+            }
+        });
     }
 }
 
@@ -788,9 +962,17 @@ function restoreDefaultPerks() {
 // --- Modal Functions ---
 let autoCloseTimer = null;
 let countdownInterval = null;
+let modalOnCloseCallback = null;
+let modalClosing = false; // Flag to prevent double execution
 
-function showMessage({ mainText, subText = '', emojis = '', autoClose = true }) {
+function showMessage({ mainText, subText = '', emojis = '', autoClose = true, onClose = null }) {
+    console.log('📱 showMessage called:', mainText);
+    modalClosing = false; // Reset the flag for new message
+    
     modalMessage.textContent = mainText;
+    
+    // Store the onClose callback
+    modalOnCloseCallback = onClose;
     
     // Clear any existing timers
     if (autoCloseTimer) {
@@ -830,11 +1012,14 @@ function showMessage({ mainText, subText = '', emojis = '', autoClose = true }) 
             modalCountdownTimer.textContent = timeLeft;
             if (timeLeft <= 0) {
                 clearInterval(countdownInterval);
+                countdownInterval = null;
+                console.log('⏰ Auto-close countdown finished, closing modal...');
                 hideMessage();
             }
         }, 1000);
         
         autoCloseTimer = setTimeout(() => {
+            console.log('⏰ Auto-close timer finished, closing modal...');
             hideMessage();
         }, 5000);
     } else {
@@ -847,6 +1032,17 @@ function showMessage({ mainText, subText = '', emojis = '', autoClose = true }) 
     setTimeout(() => messageModal.querySelector('div').classList.remove('scale-95'), 10);
 }
 function hideMessage() {
+    console.log('🚪 hideMessage called, modalClosing=', modalClosing);
+    
+    // Prevent double execution
+    if (modalClosing) {
+        console.log('⚠️ Modal already closing, ignoring call');
+        return;
+    }
+    modalClosing = true;
+    
+    console.log('📊 Current timer state: isRunning=', isRunning, 'isPaused=', isPaused, 'isBreak=', isBreak, 'timeLeft=', timeLeft);
+    
     // Clear any active timers
     if (autoCloseTimer) {
         clearTimeout(autoCloseTimer);
@@ -862,6 +1058,26 @@ function hideMessage() {
     messageModal.classList.remove('flex');
     modalCountdown.classList.add('hidden');
     modalCountdown.classList.remove('flex');
+    
+    // Execute onClose callback if it exists
+    if (modalOnCloseCallback) {
+        console.log('🔄 Executing onClose callback...');
+        const callback = modalOnCloseCallback;
+        modalOnCloseCallback = null; // Clear the callback
+        try {
+            callback();
+        } catch (error) {
+            console.error('❌ Error in onClose callback:', error);
+        }
+    } else {
+        console.log('ℹ️ No onClose callback to execute');
+    }
+    
+    // Reset the flag after a short delay
+    setTimeout(() => {
+        modalClosing = false;
+        console.log('✅ hideMessage completed, modal ready for next use');
+    }, 100);
 }
 function showCustomTimerModal() {
     customFocusInput.value = timerModes.custom.focus;
@@ -1299,7 +1515,7 @@ function initializeApp() {
     
     // Update displays and render components
     renderTimerModeButtons();
-    resetTimer();
+    updateDisplay(); // Update timer display instead of reset
     updateCredits();
     renderPerks();
     renderSubtasks();
@@ -1307,6 +1523,9 @@ function initializeApp() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // After everything is initialized, handle timer restoration
+    handleTimerRestoration();
     
     // Register service worker for PWA functionality
     if ('serviceWorker' in navigator) {
@@ -1322,14 +1541,42 @@ function initializeApp() {
     console.log('✅ Pomodoro App initialized successfully');
 }
 
+// Handle timer restoration after app initialization
+function handleTimerRestoration() {
+    // Check if we need to resume a running timer
+    if (isRunning && sessionStartTime && timeLeft > 0) {
+        console.log('🔄 Resuming running timer...');
+        startTimer();
+    }
+    
+    // Update timer ring color for break/focus state
+    if (timerRing) {
+        timerRing.classList.remove('text-green-500', 'text-indigo-500');
+        timerRing.classList.add(isBreak ? 'text-green-500' : 'text-indigo-500');
+    }
+    
+    console.log('✅ Timer restoration complete');
+}
+
 // Setup all event listeners
 function setupEventListeners() {
     // Theme management
     updateThemeIcons();
     
     // Timer controls
-    if (startBtn) startBtn.addEventListener('click', () => { isPaused ? startTimer() : startTimer(); });
-    if (pauseBtn) pauseBtn.addEventListener('click', pauseTimer);
+    if (startBtn) startBtn.addEventListener('click', () => { 
+        console.log('🔘 Start button clicked, isRunning:', isRunning, 'isPaused:', isPaused);
+        if (isRunning) {
+            console.log('⚠️ Timer already running, ignoring click');
+        } else {
+            console.log('▶️ Starting/resuming timer');
+            startTimer();
+        }
+    });
+    if (pauseBtn) pauseBtn.addEventListener('click', () => {
+        console.log('⏸️ Pause button clicked');
+        pauseTimer();
+    });
     if (resetBtn) resetBtn.addEventListener('click', resetTimer);
     
     // Task management
@@ -1358,7 +1605,12 @@ function setupEventListeners() {
     }
     
     // Modals
-    if (modalCloseBtn) modalCloseBtn.addEventListener('click', hideMessage);
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent any form submission or page reload
+        e.stopPropagation(); // Prevent event bubbling
+        console.log('🔘 Modal close button clicked');
+        hideMessage();
+    });
     if (customTimerSave) customTimerSave.addEventListener('click', saveCustomTimer);
     if (customTimerCancel) customTimerCancel.addEventListener('click', hideCustomTimerModal);
     if (subtaskModalSave) subtaskModalSave.addEventListener('click', saveSubtaskFromModal);
@@ -1604,5 +1856,57 @@ function saveSubtaskFromModal() {
         saveToLocalStorage();
         hideAddSubtaskModal();
     }
+}
+
+// Complete timer when it would have finished during page refresh
+function completeTimer() {
+    isRunning = false;
+    isPaused = false;
+    
+    if (!isBreak) {
+        // Focus session completed
+        credits++;
+        updateCredits();
+        
+        // Update session data
+        if (currentSessionData) {
+            currentSessionData.pomodorosCompleted++;
+            saveSessionsToLocalStorage();
+        }
+        
+        showMessage({
+            mainText: "Great work! You earned 1 credit! 🎉", 
+            emojis: "🎯✨", 
+            subText: "Time for a well-deserved break!",
+            onClose: () => {
+                // Switch to break and auto-start
+                isBreak = true;
+                timeLeft = timerModes[activeMode].break * 60;
+                updateDisplay();
+                
+                // Trigger the start button click to begin break timer
+                if (startBtn) {
+                    startBtn.click();
+                }
+            }
+        });
+    } else {
+        // Break completed
+        showMessage({
+            mainText: "Break's over! Ready to focus again?", 
+            emojis: "💪🚀", 
+            subText: "Let's get back to work!",
+            onClose: () => {
+                // Switch back to focus (don't auto-start)
+                isBreak = false;
+                timeLeft = timerModes[activeMode].focus * 60;
+                updateDisplay();
+                saveToLocalStorage();
+            }
+        });
+    }
+    
+    resetTimer();
+    saveToLocalStorage();
 }
 

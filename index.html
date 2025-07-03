@@ -112,6 +112,7 @@
                     </div>
                 </div>
                     <div id="timer-status" class="text-center text-lg font-medium text-gray-500 dark:text-gray-400 mb-4 h-6"></div>
+                    <div id="debug-start-time" class="text-center text-xs text-gray-400 dark:text-gray-600 mb-2"></div>
                 <div id="timer-modes" class="flex flex-wrap justify-center gap-2 mb-4">
                     <!-- Modes will be added by JS -->
                 </div>
@@ -151,7 +152,7 @@
                 <div class="text-center mb-6">
                     <p class="text-lg">Available Credits: <span id="credit-count" class="font-bold text-2xl text-green-500">0</span></p>
                 </div>
-                <div id="perks-list" class="space-y-4 min-h-[200px] max-h-[400px] overflow-y-auto pr-2">
+                <div id="perks-list" class="space-y-4">
                     <!-- Perks will be dynamically added here -->
                 </div>
                 <div class="mt-6">
@@ -162,6 +163,13 @@
                 </div>
             </div>
         </main>
+        
+        <!-- Footer -->
+        <footer class="mt-12 py-6 text-center border-t border-gray-200 dark:border-gray-700">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                © June 19, 2025 by Von Ryan Javillonar
+            </p>
+        </footer>
         
         <!-- Modals -->
         <div id="message-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
