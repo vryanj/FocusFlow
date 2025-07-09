@@ -1,7 +1,7 @@
 {
-  "name": "pomodoro-focus-app",
+  "name": "focusflow",
   "version": "1.0.0",
-  "description": "Enhanced Pomodoro Focus App with PWA features",
+  "description": "FocusFlow - Gamified Pomodoro timer with credit rewards and AI task breakdown",
   "main": "index.html",
   "scripts": {
     "install-deps": "npm install",

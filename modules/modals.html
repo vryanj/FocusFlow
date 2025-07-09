@@ -8,7 +8,9 @@
             <div class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-indigo-500"></div>
             <span>Auto-closing in <span id="modal-countdown-timer">5</span> seconds</span>
         </div>
-        <button id="modal-close-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg">OK</button>
+        <div id="modal-actions" class="flex gap-3 justify-center">
+            <button id="modal-close-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg">OK</button>
+        </div>
     </div>
 </div>
 
@@ -94,6 +96,35 @@
             <button id="export-sessions" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">
                 Export Sessions
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-md mx-auto w-full">
+        <h3 class="text-xl font-semibold mb-4 text-center">Settings</h3>
+        <div class="space-y-4">
+            <div>
+                <label for="google-api-key-input" class="block mb-2 font-medium">Google Gemini API Key (Optional)</label>
+                <input id="google-api-key-input" type="password" placeholder="Enter your API key..." class="w-full bg-gray-200 dark:bg-gray-700 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    For AI-powered task breakdown. 
+                    <a href="https://ai.google.dev/gemini-api/docs/quickstart" target="_blank" class="text-indigo-500 hover:text-indigo-600 underline">
+                        Get your API key here
+                    </a>
+                </p>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <p class="text-sm text-blue-700 dark:text-blue-300">
+                    <i class="fa-solid fa-info-circle mr-1"></i>
+                    Your API key is stored locally on your device and never shared.
+                </p>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+            <button id="settings-modal-cancel" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+            <button id="settings-modal-save" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg">Save</button>
         </div>
     </div>
 </div>

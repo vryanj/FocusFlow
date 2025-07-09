@@ -1,6 +1,6 @@
 {
-    "name": "pomodoro/focus-app",
-    "description": "Enhanced Pomodoro Focus App with PWA features",
+    "name": "focusflow/pomodoro-timer",
+    "description": "FocusFlow - Gamified Pomodoro timer with credit rewards and AI task breakdown",
     "type": "project",
     "require": {
         "php": ">=8.0"

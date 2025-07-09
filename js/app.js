@@ -3,11 +3,12 @@ let timeDisplay, timerRing, startBtn, pauseBtn, resetBtn, creditCountEl, perksLi
 let addPerkModal, perkNameModalInput, perkCostModalInput, perkInventoryModalInput, perkModalSave, perkModalCancel;
 let timerStatusEl, taskInput, breakdownBtn, subtasksContainer, subtaskProgressEl, addSubtaskBtn, timerModesContainer;
 let themeToggleBtn, themeToggleDarkIcon, themeToggleLightIcon, debugStartTimeEl;
-let messageModal, modalMessage, modalEmojis, modalSubMessage, modalCountdown, modalCountdownTimer, modalCloseBtn;
+let messageModal, modalMessage, modalEmojis, modalSubMessage, modalCountdown, modalCountdownTimer, modalCloseBtn, modalActions;
 let customTimerModal, customFocusInput, customBreakInput, customTimerSave, customTimerCancel;
 let addSubtaskModal, subtaskModalTitle, subtaskInput, subtaskModalSave, subtaskModalCancel;
 let sessionHistoryBtn, newSessionBtn, sessionHistoryModal, sessionHistoryClose, sessionsListEl;
-let clearAllSessionsBtn, exportSessionsBtn, menuToggle, menuDropdown, menuNewSession, menuHistory, menuRestorePerks;
+let clearAllSessionsBtn, exportSessionsBtn, menuToggle, menuDropdown, menuNewSession, menuHistory, menuRestorePerks, menuSettings;
+let settingsModal, settingsModalCancel, settingsModalSave, googleApiKeyInput;
 
 // Function to initialize DOM elements after modules are loaded
 function initializeDOMElements() {
@@ -54,6 +55,7 @@ function initializeDOMElements() {
     modalCountdown = document.getElementById('modal-countdown');
     modalCountdownTimer = document.getElementById('modal-countdown-timer');
     modalCloseBtn = document.getElementById('modal-close-btn');
+    modalActions = document.getElementById('modal-actions');
     customTimerModal = document.getElementById('custom-timer-modal');
     customFocusInput = document.getElementById('custom-focus-input');
     customBreakInput = document.getElementById('custom-break-input');
@@ -81,7 +83,14 @@ function initializeDOMElements() {
     menuDropdown = document.getElementById('menu-dropdown');
     menuNewSession = document.getElementById('menu-new-session');
     menuHistory = document.getElementById('menu-history');
+    menuSettings = document.getElementById('menu-settings');
     menuRestorePerks = document.getElementById('menu-restore-perks');
+    
+    // Settings Modal Elements
+    settingsModal = document.getElementById('settings-modal');
+    settingsModalCancel = document.getElementById('settings-modal-cancel');
+    settingsModalSave = document.getElementById('settings-modal-save');
+    googleApiKeyInput = document.getElementById('google-api-key-input');
     
     console.log('🔗 DOM elements initialized after module loading');
 }
@@ -315,11 +324,17 @@ let API_KEY = null;
 
 async function initializeAPI() {
     if (!API_KEY) {
-        await window.envLoader.load();
-        API_KEY = window.envLoader.get('GOOGLE_API_KEY');
+        // First try localStorage
+        API_KEY = localStorage.getItem('google_api_key');
+        
+        // If not in localStorage, try environment variables as fallback
+        if (!API_KEY) {
+            await window.envLoader.load();
+            API_KEY = window.envLoader.get('GOOGLE_API_KEY');
+        }
         
         if (!API_KEY) {
-            console.error('GOOGLE_API_KEY not found in environment variables');
+            console.log('Google API key not configured. AI features will be disabled.');
             throw new Error('API key not configured');
         }
     }
@@ -342,16 +357,61 @@ async function callGemini(prompt) {
 
 async function generateSubtasks() {
     const mainTask = taskInput.value.trim();
-    if (!mainTask) { showMessage({mainText: "Please enter a task in the text area first."}); return; }
+    if (!mainTask) { 
+        showMessage({
+            text: "Please enter a task first",
+            subText: "Add a task description above to generate subtasks",
+            emojis: "📝"
+        }); 
+        return; 
+    }
+    
+    // Check if API key is available
+    const apiKey = localStorage.getItem('google_api_key');
+    if (!apiKey) {
+        showMessage({
+            text: "Google API key required",
+            subText: "Set your API key in Settings to use AI features",
+            emojis: "🔑⚙️",
+            actions: [
+                {
+                    text: "Open Settings",
+                    action: () => {
+                        hideMessage();
+                        showSettingsModal();
+                    }
+                }
+            ]
+        });
+        return;
+    }
+    
     breakdownBtn.disabled = true;
     breakdownBtn.innerHTML = `<span class="spinner"></span> Generating...`;
-    const prompt = `Break down the following task into a short list of actionable sub-tasks. Each sub-task should be something that can be focused on for a 25-minute pomodoro session. Return ONLY the list as plain text, with each sub-task on a new line. Do not use markdown, numbering, or any introductory text. The task is: "${mainTask}"`;
-    const resultText = await callGemini(prompt);
-    subtasks = resultText.split('\n').filter(task => task.trim() !== '').map(task => ({ text: task, completed: false }));
-    renderSubtasks();
-    saveToLocalStorage(); // Save after generating subtasks
-    breakdownBtn.disabled = false;
-    breakdownBtn.innerHTML = '<span class="text-xl">✨</span> Generate Sub-tasks from above';
+    
+    try {
+        const prompt = `Break down the following task into a short list of actionable sub-tasks. Each sub-task should be something that can be focused on for a 25-minute pomodoro session. Return ONLY the list as plain text, with each sub-task on a new line. Do not use markdown, numbering, or any introductory text. The task is: "${mainTask}"`;
+        const resultText = await callGemini(prompt);
+        subtasks = resultText.split('\n').filter(task => task.trim() !== '').map(task => ({ text: task, completed: false }));
+        renderSubtasks();
+        saveToLocalStorage(); // Save after generating subtasks
+        
+        showMessage({
+            text: "Subtasks generated successfully!",
+            subText: "AI broke down your task into focused sessions",
+            emojis: "✨🎯"
+        });
+    } catch (error) {
+        console.error('Error generating subtasks:', error);
+        showMessage({
+            text: "Failed to generate subtasks",
+            subText: "Check your API key in Settings or try again",
+            emojis: "❌🔧"
+        });
+    } finally {
+        breakdownBtn.disabled = false;
+        breakdownBtn.innerHTML = '<span class="text-xl">✨</span> Generate Sub-tasks from above';
+    }
 }
 
 // --- Timer Functions ---
@@ -965,11 +1025,14 @@ let countdownInterval = null;
 let modalOnCloseCallback = null;
 let modalClosing = false; // Flag to prevent double execution
 
-function showMessage({ mainText, subText = '', emojis = '', autoClose = true, onClose = null }) {
-    console.log('📱 showMessage called:', mainText);
+function showMessage({ mainText, text, subText = '', emojis = '', autoClose = true, onClose = null, actions = [] }) {
+    // Support both old format (mainText) and new format (text)
+    const messageText = text || mainText;
+    
+    console.log('📱 showMessage called:', messageText);
     modalClosing = false; // Reset the flag for new message
     
-    modalMessage.textContent = mainText;
+    modalMessage.textContent = messageText;
     
     // Store the onClose callback
     modalOnCloseCallback = onClose;
@@ -1025,6 +1088,43 @@ function showMessage({ mainText, subText = '', emojis = '', autoClose = true, on
     } else {
         modalCountdown.classList.add('hidden');
         modalCountdown.classList.remove('flex');
+    }
+    
+    // Handle action buttons
+    if (actions && actions.length > 0 && modalActions) {
+        // Clear existing actions
+        modalActions.innerHTML = '';
+        
+        // Add action buttons
+        actions.forEach(action => {
+            const button = document.createElement('button');
+            button.textContent = action.text;
+            button.className = 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg';
+            button.onclick = () => {
+                if (action.action) action.action();
+                hideMessage();
+            };
+            modalActions.appendChild(button);
+        });
+        
+        // Add OK button
+        const okButton = document.createElement('button');
+        okButton.textContent = 'OK';
+        okButton.className = 'bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg';
+        okButton.onclick = hideMessage;
+        modalActions.appendChild(okButton);
+    } else if (modalActions) {
+        // Reset to default OK button
+        modalActions.innerHTML = '<button id="modal-close-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg">OK</button>';
+        // Re-attach event listener
+        const newModalCloseBtn = document.getElementById('modal-close-btn');
+        if (newModalCloseBtn) {
+            newModalCloseBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                hideMessage();
+            });
+        }
     }
     
     messageModal.classList.remove('hidden');
@@ -1421,74 +1521,79 @@ function hideSessionHistoryModal() {
     sessionHistoryModal.classList.remove('flex');
 }
 
-function saveSessionsToLocalStorage() {
-    try {
-        localStorage.setItem('pomodoroSessions', JSON.stringify(sessions));
-        localStorage.setItem('currentSessionId', currentSessionId || '');
-        localStorage.setItem('currentSessionData', JSON.stringify(currentSessionData || {}));
-        console.log('💾 Sessions saved to localStorage');
-    } catch (error) {
-        console.error('❌ Error saving sessions to localStorage:', error);
+// Settings Modal Functions
+function showSettingsModal() {
+    // Load current API key (masked for security)
+    const currentApiKey = localStorage.getItem('google_api_key');
+    if (googleApiKeyInput && currentApiKey) {
+        // Show masked version for security
+        googleApiKeyInput.value = '•'.repeat(currentApiKey.length);
+        googleApiKeyInput.setAttribute('data-original', currentApiKey);
+    }
+    
+    settingsModal.classList.remove('hidden');
+    settingsModal.classList.add('flex');
+    
+    // Focus on the API key input
+    if (googleApiKeyInput) {
+        setTimeout(() => {
+            googleApiKeyInput.focus();
+        }, 100);
     }
 }
 
-function loadSessionsFromLocalStorage() {
-    try {
-        const savedSessions = localStorage.getItem('pomodoroSessions');
-        const savedCurrentId = localStorage.getItem('currentSessionId');
-        const savedCurrentData = localStorage.getItem('currentSessionData');
-        
-        if (savedSessions) {
-            sessions = JSON.parse(savedSessions);
-            console.log('📖 Loaded sessions from localStorage:', sessions.length);
-        }
-        
-        if (savedCurrentId && savedCurrentId !== '') {
-            currentSessionId = savedCurrentId;
-        }
-        
-        if (savedCurrentData && savedCurrentData !== '{}') {
-            currentSessionData = JSON.parse(savedCurrentData);
-        }
-        
-        console.log('✅ Session data loaded from localStorage');
-    } catch (error) {
-        console.error('❌ Error loading sessions from localStorage:', error);
-        sessions = [];
-        currentSessionId = null;
-        currentSessionData = null;
+function hideSettingsModal() {
+    settingsModal.classList.add('hidden');
+    settingsModal.classList.remove('flex');
+    
+    // Clear the input
+    if (googleApiKeyInput) {
+        googleApiKeyInput.value = '';
+        googleApiKeyInput.removeAttribute('data-original');
     }
 }
 
-// --- Reset Functions ---
-function resetToDefaults() {
-    // Clear main task
-    if (taskInput) {
-        taskInput.value = '';
+function saveSettings() {
+    if (!googleApiKeyInput) return;
+    
+    const apiKeyValue = googleApiKeyInput.value.trim();
+    const originalValue = googleApiKeyInput.getAttribute('data-original');
+    
+    // If the value is masked dots, keep the original value
+    if (apiKeyValue === '•'.repeat(apiKeyValue.length) && originalValue) {
+        // User didn't change the API key, keep the existing one
+        hideSettingsModal();
+        return;
     }
     
-    // Clear subtasks
-    subtasks = [];
+    // Save the new API key (or clear it if empty)
+    if (apiKeyValue) {
+        localStorage.setItem('google_api_key', apiKeyValue);
+        // Clear the cached API key so it gets reloaded
+        API_KEY = null;
+        console.log('✅ Google API key saved successfully');
+        
+        showMessage({
+            text: "Settings saved successfully!",
+            subText: "AI features are now available",
+            emojis: "⚙️✅"
+        });
+    } else {
+        localStorage.removeItem('google_api_key');
+        API_KEY = null;
+        console.log('🗑️ Google API key removed');
+        
+        showMessage({
+            text: "API key removed",
+            subText: "AI features will be disabled",
+            emojis: "⚙️🚫"
+        });
+    }
     
-    // Update UI (keeping credits and perks intact)
-    renderSubtasks();
-    saveToLocalStorage();
-    
-    console.log('🔄 App reset (tasks cleared, credits and perks preserved)');
+    hideSettingsModal();
 }
 
-// --- Menu Functions ---
-function toggleMenu() {
-    menuDropdown.classList.toggle('hidden');
-}
-
-function hideMenu() {
-    menuDropdown.classList.add('hidden');
-}
-
-// Menu close functionality will be handled in setupEventListeners()
-
-// Initialize the application
+// --- Initialize Functions ---
 function initializeApp() {
     console.log('🎯 Initializing Pomodoro App...');
     
@@ -1736,10 +1841,38 @@ function setupEventListeners() {
             showSessionHistoryModal();
         });
     }
+    if (menuSettings) {
+        menuSettings.addEventListener('click', () => {
+            hideMenu();
+            showSettingsModal();
+        });
+    }
     if (menuRestorePerks) {
         menuRestorePerks.addEventListener('click', () => {
             hideMenu();
             restoreDefaultPerks();
+        });
+    }
+    
+    // Settings Modal event listeners
+    if (settingsModalSave) settingsModalSave.addEventListener('click', saveSettings);
+    if (settingsModalCancel) settingsModalCancel.addEventListener('click', hideSettingsModal);
+    
+    // Close settings modal when clicking outside
+    if (settingsModal) {
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) {
+                hideSettingsModal();
+            }
+        });
+    }
+    
+    // Handle Enter key in API key input
+    if (googleApiKeyInput) {
+        googleApiKeyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveSettings();
+            }
         });
     }
     

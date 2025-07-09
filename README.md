@@ -1,152 +1,72 @@
-# Pomodoro Focus App 🍅
+# FocusFlow - Gamified Pomodoro Timer
 
-A modern, feature-rich Pomodoro timer Progressive Web App (PWA) designed to boost productivity through focused work sessions, smart task management, and a motivating rewards system.
+Gamified Pomodoro timer with credit rewards, AI task breakdown, and session tracking. Make productivity fun and rewarding!
 
-## Why Use This Pomodoro App?
+## ✨ Key Features
 
-**Enhanced Focus & Productivity**
-- Break work into manageable, timed intervals to maintain concentration
-- Reduce mental fatigue with structured break periods
-- Stay in the flow state longer with customizable timer modes
+- 🎮 **Gamified Experience** - Earn credits for completed sessions
+- 🤖 **AI Task Breakdown** - Smart subtask generation powered by Google Gemini
+- 📊 **Session Tracking** - Detailed productivity analytics and history
+- 🎁 **Custom Rewards** - Personalize your break activities with purchasable perks
+- � **Beautiful UI** - Dark/light themes with smooth animations
+- ⚡ **Multiple Timer Modes** - Choose from 25/5, 50/10, or custom durations
+- 💾 **Auto-Save** - Your progress is automatically saved
+- 📱 **PWA Ready** - Install as a mobile app
 
-**Smart Task Management**
-- AI-powered task breakdown using Google's Gemini API
-- Automatically generate sub-tasks from complex projects
-- Visual progress tracking with drag-and-drop reordering
-- Never lose track of what needs to be done
+## 🚀 Getting Started
 
-**Motivating Rewards System**
-- Earn credits for completed Pomodoro sessions
-- Redeem credits for personal rewards and treats
-- Limited inventory system creates urgency and excitement
-- Custom perks tailored to your preferences
+1. Clone this repository
+2. Open `index.html` in your browser
+3. (Optional) Add your Google Gemini API key via Settings menu for AI features
+4. Start focusing and earning credits!
 
-**Delightful User Experience**
-- Witty, encouraging popup messages at the end of each session
-- Beautiful dark/light mode themes
-- Responsive design works on any device
-- Offline capability as a Progressive Web App
+## 🎯 How It Works
 
-## Key Features
+1. **Set Your Task** - Enter what you want to work on
+2. **Generate Subtasks** - Use AI to break down complex tasks (requires API key)
+3. **Start Timer** - Choose your preferred Pomodoro duration
+4. **Earn Credits** - Complete sessions to earn credits
+5. **Spend Rewards** - Use credits on custom break activities
+6. **Track Progress** - View your productivity history and stats
 
-### 🎯 **Smart Timer Modes**
-- **25/5 Pomodoro**: Classic 25-minute focus, 5-minute break
-- **50/10 Extended**: Longer sessions for deep work
-- **Custom Mode**: Set your own focus and break durations
-- Visual timer ring with smooth animations
+## 🛠️ Configuration
 
-### 📋 **Intelligent Task Management**
-- Manual task entry with sub-task breakdown
-- AI-powered task generation using Google Gemini
-- Drag-and-drop reordering of sub-tasks
-- Progress tracking with completion checkboxes
-- Click-to-edit functionality for easy updates
+### Google Gemini API Setup (Optional)
+For AI-powered task breakdown:
 
-### 🎁 **Motivating Perks System**
-- Earn 1 credit per completed Pomodoro session
-- Create custom rewards (coffee breaks, social media time, treats)
-- Limited inventory creates scarcity and motivation
-- Smart sorting: affordable perks first, sold-out items last
-- Visual inventory badges with hover tooltips
+1. Open the Settings menu (hamburger menu → Settings)
+2. Get your free API key from [Google AI Studio](https://ai.google.dev/gemini-api/docs/quickstart)
+3. Enter your API key in the settings
+4. Your key is stored locally and never shared
 
-### 🎨 **Beautiful Interface**
-- Clean, modern design with Tailwind CSS
-- Seamless dark/light mode switching
-- Responsive layout works on desktop, tablet, and mobile
-- Smooth animations and hover effects
-- Color-coded visual feedback for different states
+The app works perfectly without an API key - you just won't have AI task generation.
 
-### 📱 **Progressive Web App**
-- Install on any device like a native app
-- Works completely offline
-- Fast loading with service worker caching
-- Push notifications (when supported)
+### Customization
+- Add your own reward perks
+- Adjust timer durations
+- Customize themes and colors
 
-## Installation
+## 🎨 Screenshots
 
-### Quick Start
+[Add screenshots of your app here]
 
-1. **Clone or download** this repository
-2. **Set up Google API** (optional, for AI task generation):
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your Google API key
-   ```
-3. **Serve the app** using any web server:
-   ```bash
-   # Using Python
-   python3 -m http.server 8000
-   
-   # Using Node.js
-   npx http-server
-   
-   # Using PHP
-   php -S localhost:8000
-   ```
-4. **Open** `http://localhost:8000` in your browser
-5. **Install as PWA** (optional): Click the install button in your browser
+## 📱 Installation
 
-### Google API Setup (Optional)
+FocusFlow works as a Progressive Web App (PWA):
+1. Open the app in your browser
+2. Click "Add to Home Screen" when prompted
+3. Use it like a native app!
 
-For AI-powered task breakdown feature:
+## 🤝 Contributing
 
-1. Copy the environment template:
-   ```bash
-   cp .env.example .env
-   ```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-2. Get a Google API key:
-   - Visit [Google AI Studio](https://aistudio.google.com/)
-   - Create a new API key for Gemini
-   - Enable the Gemini API
+## 📄 License
 
-3. Add your API key to `.env`:
-   ```
-   GOOGLE_API_KEY=your_api_key_here
-   ```
+This project is open source and available under the [MIT License](LICENSE).
 
-The app works perfectly without the API key - you just won't have AI-powered task generation.
+## 🙏 Acknowledgments
 
-## How It Works
-
-1. **Set Your Task**: Enter what you want to work on
-2. **Generate Sub-tasks**: Use AI or add manually for better organization
-3. **Start Timer**: Choose your preferred Pomodoro mode
-4. **Stay Focused**: Work until the timer ends with a delightful message
-5. **Earn Credits**: Get rewarded for completed sessions
-6. **Redeem Perks**: Spend credits on motivating rewards
-7. **Repeat**: Build a productive habit with the satisfying cycle
-
-## File Structure
-
-```
-my-pomodoro/
-├── index.html              # Main app (single file version)
-├── index-modular.html      # Modular version entry point
-├── modules/                # HTML modules for organization
-│   ├── timer.html
-│   ├── task-management.html
-│   ├── credits-perks.html
-│   ├── modals.html
-│   └── navigation.html
-├── js/                     # JavaScript modules
-│   ├── app.js             # Main application logic
-│   ├── module-loader.js   # Dynamic module loading
-│   └── env-loader.js      # Environment variable handling
-├── manifest.json          # PWA manifest
-├── sw.js                  # Service worker for offline support
-├── .env.example           # Environment template
-└── README.md
-```
-
-## Browser Support
-
-- ✅ Chrome 80+
-- ✅ Firefox 75+
-- ✅ Safari 13+
-- ✅ Edge 80+
-- ✅ Mobile browsers (iOS Safari, Chrome Mobile)
-
----
-
-**Start your focused work journey today!** 🚀
+- Built with vanilla JavaScript
+- Powered by Google Gemini AI
+- Inspired by the Pomodoro Technique®
