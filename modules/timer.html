@@ -1,12 +1,12 @@
 <!-- Timer Section -->
-<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+<div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg h-full flex flex-col">
     <h2 class="text-2xl font-semibold mb-4 text-center">Timer</h2>
-    <div class="relative w-48 h-48 mx-auto mb-4">
+    <div class="relative w-48 h-48 md:w-56 md:h-56 mx-auto mb-4">
         <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 100 100">
             <circle class="text-gray-200 dark:text-gray-700" stroke-width="7" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
             <circle id="timer-ring" class="text-indigo-500 timer-ring" stroke-width="7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" style="transform: rotate(-90deg); transform-origin: 50% 50%;" />
         </svg>
-        <div id="time-display" class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-4xl font-bold">
+        <div id="time-display" class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-4xl md:text-5xl font-bold">
             25:00
         </div>
     </div>
@@ -15,9 +15,13 @@
     <div id="timer-modes" class="flex flex-wrap justify-center gap-2 mb-4">
         <!-- Modes will be added by JS -->
     </div>
-    <div class="flex justify-center space-x-4">
+    
+    <!-- Timer Controls - moved closer to timer options -->
+    <div class="flex justify-center space-x-4 mb-4">
         <button id="start-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Start</button>
         <button id="pause-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 hidden">Pause</button>
         <button id="reset-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">Reset</button>
     </div>
+    
+    <div class="flex-grow"></div>
 </div>

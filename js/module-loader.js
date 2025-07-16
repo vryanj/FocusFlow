@@ -1,4 +1,4 @@
-// Module Loader for Pomodoro App
+// Module Loader for FocusFlow App
 // This script loads HTML modules and then initializes the main application
 
 class ModuleLoader {
@@ -34,7 +34,7 @@ class ModuleLoader {
     }
 
     async loadAllModules() {
-        console.log('🚀 Loading Pomodoro App modules...');
+        console.log('🚀 Loading FocusFlow modules...');
         
         // Load all modules in parallel
         const loadPromises = this.modules.map(module => this.loadModule(module));

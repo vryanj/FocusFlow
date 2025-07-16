@@ -7,7 +7,7 @@ let messageModal, modalMessage, modalEmojis, modalSubMessage, modalCountdown, mo
 let customTimerModal, customFocusInput, customBreakInput, customTimerSave, customTimerCancel;
 let addSubtaskModal, subtaskModalTitle, subtaskInput, subtaskModalSave, subtaskModalCancel;
 let sessionHistoryBtn, newSessionBtn, sessionHistoryModal, sessionHistoryClose, sessionsListEl;
-let clearAllSessionsBtn, exportSessionsBtn, menuToggle, menuDropdown, menuNewSession, menuHistory, menuRestorePerks, menuSettings;
+let clearAllSessionsBtn, exportSessionsBtn;
 let settingsModal, settingsModalCancel, settingsModalSave, googleApiKeyInput;
 
 // Function to initialize DOM elements after modules are loaded
@@ -135,6 +135,64 @@ let sessions = [];
 let currentSessionId = null;
 let currentSessionData = null;
 
+function loadSessionsFromLocalStorage() {
+    const savedSessions = localStorage.getItem('pomodoroSessions');
+    if (savedSessions) {
+        sessions = JSON.parse(savedSessions);
+        const currentSessionIdSaved = localStorage.getItem('pomodoroCurrentSessionId');
+        if (currentSessionIdSaved) {
+            currentSessionId = currentSessionIdSaved;
+            currentSessionData = sessions.find(s => s.id === currentSessionId) || null;
+        }
+    }
+    console.log('📂 Sessions loaded from localStorage.');
+}
+
+function renderSessionHistory() {
+    if (!sessionsListEl) {
+        // This can happen if the session history modal is not yet loaded/visible
+        console.warn('Session list element not found, skipping render.');
+        return;
+    }
+
+    sessionsListEl.innerHTML = ''; // Clear existing list
+
+    // Use the `sessions` array as the source of truth
+    const sessionsToRender = sessions || [];
+
+    if (sessionsToRender.length === 0) {
+        sessionsListEl.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 italic p-4">No sessions recorded yet.</p>';
+        return;
+    }
+
+    // Sort sessions by start time, newest first
+    const sortedSessions = [...sessionsToRender].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+
+    sortedSessions.forEach(session => {
+        const sessionEl = document.createElement('div');
+        sessionEl.className = 'p-3 border-b border-gray-200 dark:border-gray-700';
+
+        const startTime = new Date(session.startTime).toLocaleString();
+        const endTime = session.endTime ? new Date(session.endTime).toLocaleString() : 'In Progress';
+        const duration = session.endTime ? `${Math.round((new Date(session.endTime) - new Date(session.startTime)) / 60000)} mins` : '-';
+        const pomodoros = session.pomodorosCompleted || 0;
+
+        sessionEl.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="font-semibold text-gray-800 dark:text-gray-200">${session.task || 'Untitled Session'}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">${startTime}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-medium">${pomodoros} 🍅</p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">${duration}</p>
+                </div>
+            </div>
+        `;
+        sessionsListEl.appendChild(sessionEl);
+    });
+}
+
 // --- LocalStorage Functions ---
 function saveToLocalStorage() {
     try {
@@ -222,7 +280,7 @@ function loadFromLocalStorage() {
                 if (isRunning && sessionStartTime) {
                     const elapsedTime = (Date.now() - sessionStartTime) / 1000;
                     const totalDuration = (isBreak ? timerModes[activeMode].break : timerModes[activeMode].focus) * 60;
-                    timeLeft = Math.max(0, totalDuration - elapsedTime);
+                    timeLeft = Math.max(0, Math.round(totalDuration - elapsedTime));
                     
                     if (timeLeft > 0) {
                         console.log(`🔄 Resuming timer with ${Math.floor(timeLeft / 60)}:${String(Math.floor(timeLeft % 60)).padStart(2, '0')} remaining`);
@@ -232,7 +290,7 @@ function loadFromLocalStorage() {
                         isRunning = false;
                         isPaused = false;
                         // Will complete after DOM elements are initialized
-                        setTimeout(() => completeTimer(), 100);
+                        setTimeout(() => handleTimerEnd(), 100);
                     }
                 }
             } else {
@@ -429,7 +487,7 @@ function selectTimerMode(modeKey) {
         
         activeMode = modeKey;
         const newTotalDuration = timerModes[activeMode].focus * 60;
-        timeLeft = newTotalDuration - elapsedTime;
+        timeLeft = Math.round(newTotalDuration - elapsedTime);
         if (timeLeft < 0) timeLeft = 0;
         updateDisplay();
     } else {
@@ -454,6 +512,9 @@ function renderTimerModeButtons() {
 }
 
 function updateDisplay() {
+    // Ensure timeLeft is always an integer to prevent fractional seconds display
+    timeLeft = Math.round(timeLeft);
+    
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
     if (timeDisplay) {
@@ -736,9 +797,40 @@ function renderSubtasks() {
     }
     updateSubtaskProgress();
 }
+
+function showAddSubtaskModal() {
+    if (addSubtaskModal) {
+        subtaskModalTitle.textContent = 'Add New Sub-task';
+        subtaskInput.value = '';
+        delete addSubtaskModal.dataset.editingIndex;
+        addSubtaskModal.classList.remove('hidden');
+        subtaskInput.focus();
+    }
+}
+
+function showEditSubtaskModal(index) {
+    if (addSubtaskModal && subtasks[index]) {
+        subtaskModalTitle.textContent = 'Edit Sub-task';
+        subtaskInput.value = subtasks[index].text;
+        addSubtaskModal.dataset.editingIndex = index;
+        addSubtaskModal.classList.remove('hidden');
+        subtaskInput.focus();
+    }
+}
+
 function addManualSubtask() {
     showAddSubtaskModal();
 }
+
+function hideAddSubtaskModal() {
+    if (addSubtaskModal) {
+        addSubtaskModal.classList.add('hidden');
+        // Clear input and editing state
+        subtaskInput.value = '';
+        delete addSubtaskModal.dataset.editingIndex;
+    }
+}
+
 function editSubtask(index) {
     showEditSubtaskModal(index);
 }
@@ -767,93 +859,122 @@ function setupDragAndDrop() {
     taskElements.forEach((element, index) => {
         // Handle drag start
         element.addEventListener('dragstart', (e) => {
-            draggedElement = element;
-            draggedIndex = parseInt(element.dataset.index);
-            element.style.opacity = '0.5';
+            draggedElement = e.target.closest('[draggable="true"]');
+            draggedIndex = parseInt(draggedElement.dataset.index, 10);
             e.dataTransfer.effectAllowed = 'move';
+            // Add a slight delay to allow the browser to render the drag image
+            setTimeout(() => {
+                if (draggedElement) {
+                    draggedElement.classList.add('dragging');
+                }
+            }, 0);
         });
 
         // Handle drag end
         element.addEventListener('dragend', (e) => {
-            element.style.opacity = '1';
-            draggedElement = null;
-            draggedIndex = null;
-            
-            // Remove all drop indicators
-            subtasksContainer.querySelectorAll('.drop-indicator').forEach(indicator => {
-                indicator.remove();
-            });
-        });
-
-        // Handle drag over
-        element.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            
-            if (draggedElement && element !== draggedElement) {
-                const rect = element.getBoundingClientRect();
-                const midY = rect.top + rect.height / 2;
-                const dropPosition = e.clientY < midY ? 'before' : 'after';
-                
-                // Remove existing indicators
-                subtasksContainer.querySelectorAll('.drop-indicator').forEach(indicator => {
-                    indicator.remove();
-                });
-                
-                // Add drop indicator
-                const indicator = document.createElement('div');
-                indicator.className = 'drop-indicator h-0.5 bg-indigo-500 mx-4 rounded-full transition-all';
-                
-                if (dropPosition === 'before') {
-                    element.parentNode.insertBefore(indicator, element);
-                } else {
-                    element.parentNode.insertBefore(indicator, element.nextSibling);
-                }
+            if (draggedElement) {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+                draggedIndex = null;
             }
-        });
-
-        // Handle drop
-        element.addEventListener('drop', (e) => {
-            e.preventDefault();
-            
-            if (draggedElement && element !== draggedElement) {
-                const targetIndex = parseInt(element.dataset.index);
-                const rect = element.getBoundingClientRect();
-                const midY = rect.top + rect.height / 2;
-                const dropPosition = e.clientY < midY ? 'before' : 'after';
-                
-                // Calculate new index
-                let newIndex;
-                if (dropPosition === 'before') {
-                    newIndex = targetIndex;
-                } else {
-                    newIndex = targetIndex + 1;
-                }
-                
-                // Adjust for dragging from higher index to lower
-                if (draggedIndex < newIndex) {
-                    newIndex--;
-                }
-                
-                // Reorder the subtasks array
-                const [movedTask] = subtasks.splice(draggedIndex, 1);
-                subtasks.splice(newIndex, 0, movedTask);
-                
-                // Re-render and save
-                renderSubtasks();
-                saveToLocalStorage();
-            }
-            
-            // Clean up
-            subtasksContainer.querySelectorAll('.drop-indicator').forEach(indicator => {
-                indicator.remove();
-            });
         });
     });
 }
 
+function renderSessionHistory() {
+    if (!sessionsListEl) return;
+    
+    if (sessions.length === 0) {
+        sessionsListEl.innerHTML = `
+            <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <i class="fa-solid fa-exclamation-circle text-6xl mx-auto mb-4 opacity-50"></i>
+                <p class="text-lg mb-2">No sessions yet</p>
+                <p class="text-sm">Start a new session to see your history here</p>
+            </div>
+        `;
+        return;
+    }
+    
+    sessionsListEl.innerHTML = sessions.map(session => {
+        const startDate = new Date(session.startTime);
+        const isActive = session.id === currentSessionId;
+        const statusIcon = session.status === 'completed' ? '✅' : '🔄';
+        
+        return `
+            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border ${isActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-600'}">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="flex-grow">
+                        <h4 class="font-semibold text-lg ${isActive ? 'text-blue-700 dark:text-blue-300' : ''} flex items-center gap-2">
+                            ${statusIcon} ${session.title}
+                            ${isActive ? '<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">Current</span>' : ''}
+                        </h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            ${startDate.toLocaleDateString()} at ${startDate.toLocaleTimeString()}
+                        </p>
+                    </div>
+                    <div class="flex gap-2 ml-4">
+                        <button onclick="restoreSession('${session.id}')" class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                            Restore
+                        </button>
+                        <button onclick="deleteSession('${session.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded-full">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Duration:</span>
+                        <div class="font-medium">${session.duration ? formatDuration(session.duration) : 'In progress'}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Tasks:</span>
+                        <div class="font-medium">${session.tasksCompleted}/${session.totalTasks}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Pomodoros:</span>
+                        <div class="font-medium">${session.pomodorosCompleted}</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-500 dark:text-gray-400">Mode:</span>
+                        <div class="font-medium">${timerModes[session.timerMode]?.name || session.timerMode}</div>
+                    </div>
+                </div>
+                
+                ${session.summary ? `<p class="text-sm text-gray-600 dark:text-gray-400 italic">"${session.summary}"</p>` : ''}
+                
+                ${session.mainTask ? `
+                    <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Main Task:</div>
+                        <div class="text-sm font-medium">${session.mainTask}</div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function saveSubtaskFromModal() {
+    const newText = subtaskInput.value.trim();
+    if (!newText) return;
+
+    const editingIndex = addSubtaskModal.dataset.editingIndex;
+
+    if (editingIndex !== undefined && editingIndex !== null) {
+        // Editing existing subtask
+        subtasks[editingIndex].text = newText;
+    } else {
+        // Adding new subtask
+        subtasks.push({ text: newText, completed: false });
+    }
+    
+    renderSubtasks();
+    saveToLocalStorage();
+    hideAddSubtaskModal();
+}
+
 // --- Credits & Perks Functions ---
-function updateCredits() { 
+function updateCredits() {
     if (creditCountEl) {
         creditCountEl.textContent = credits; 
     }
@@ -908,11 +1029,11 @@ function renderPerks() {
         let inventoryBadge = '';
         if (perk.inventory !== undefined) {
             if (perk.inventory === 0) {
-                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-red-500 text-white" title="Sold Out">×</span>`;
+                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-red-500 text-white text-center leading-none" title="Sold Out">×</span>`;
             } else if (perk.inventory <= 2) {
-                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-orange-500 text-white" title="${perk.inventory} Left">${perk.inventory}</span>`;
+                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-orange-500 text-white text-center leading-none" title="${perk.inventory} Left">${perk.inventory}</span>`;
             } else {
-                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-green-500 text-white" title="${perk.inventory} Left">${perk.inventory}</span>`;
+                inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-green-500 text-white text-center leading-none" title="${perk.inventory} Left">${perk.inventory}</span>`;
             }
         }
         
@@ -1063,69 +1184,64 @@ function showMessage({ mainText, text, subText = '', emojis = '', autoClose = tr
         modalEmojis.classList.toggle('hidden', !foundEmojis);
     }
     
-    // Handle auto-close countdown
+    modalMessage.classList.remove('hidden');
+    modalMessage.classList.add('flex');
+    setTimeout(() => modalMessage.querySelector('div').classList.remove('scale-95'), 10);
+    
     if (autoClose) {
+        // Auto-close after 3 seconds
+        autoCloseTimer = setTimeout(() => {
+            hideMessage();
+        }, 3000);
+    }
+    
+    // Start countdown animation
+    if (modalCountdown && actions.length > 0) {
         modalCountdown.classList.remove('hidden');
         modalCountdown.classList.add('flex');
-        let timeLeft = 5;
-        modalCountdownTimer.textContent = timeLeft;
-        
+        let remainingTime = 5;
+        modalCountdownTimer.textContent = remainingTime;
         countdownInterval = setInterval(() => {
-            timeLeft--;
-            modalCountdownTimer.textContent = timeLeft;
-            if (timeLeft <= 0) {
+            remainingTime--;
+            modalCountdownTimer.textContent = remainingTime;
+            if (remainingTime <= 0) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
-                console.log('⏰ Auto-close countdown finished, closing modal...');
                 hideMessage();
             }
         }, 1000);
-        
-        autoCloseTimer = setTimeout(() => {
-            console.log('⏰ Auto-close timer finished, closing modal...');
-            hideMessage();
-        }, 5000);
     } else {
+        // Ensure countdown is hidden if not needed
         modalCountdown.classList.add('hidden');
         modalCountdown.classList.remove('flex');
     }
     
-    // Handle action buttons
-    if (actions && actions.length > 0 && modalActions) {
-        // Clear existing actions
-        modalActions.innerHTML = '';
-        
-        // Add action buttons
-        actions.forEach(action => {
-            const button = document.createElement('button');
-            button.textContent = action.text;
-            button.className = 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg';
-            button.onclick = () => {
-                if (action.action) action.action();
-                hideMessage();
-            };
-            modalActions.appendChild(button);
-        });
-        
-        // Add OK button
-        const okButton = document.createElement('button');
-        okButton.textContent = 'OK';
-        okButton.className = 'bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg';
-        okButton.onclick = hideMessage;
-        modalActions.appendChild(okButton);
-    } else if (modalActions) {
-        // Reset to default OK button
-        modalActions.innerHTML = '<button id="modal-close-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg">OK</button>';
-        // Re-attach event listener
-        const newModalCloseBtn = document.getElementById('modal-close-btn');
-        if (newModalCloseBtn) {
-            newModalCloseBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                hideMessage();
-            });
-        }
-    }
+    // Setup action buttons
+    const actionButtons = actions.map(action => {
+        const button = document.createElement('button');
+        button.textContent = action.text;
+        button.className = 'bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg';
+        button.onclick = () => {
+            if (action.action) action.action();
+            hideMessage();
+        };
+        return button;
+    });
+    
+    // Clear existing actions
+    modalActions.innerHTML = '';
+    
+    // Add new action buttons
+    actionButtons.forEach(button => {
+        modalActions.appendChild(button);
+    });
+    
+    // Add OK button
+    const okButton = document.createElement('button');
+    okButton.textContent = 'OK';
+    okButton.className = 'bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg';
+    okButton.onclick = hideMessage;
+    modalActions.appendChild(okButton);
     
     messageModal.classList.remove('hidden');
     messageModal.classList.add('flex');
@@ -1203,7 +1319,7 @@ function saveCustomTimer() {
             activeMode = 'custom';
             
             const newTotalDuration = timerModes[activeMode].focus * 60;
-            timeLeft = newTotalDuration - elapsedTime;
+            timeLeft = Math.round(newTotalDuration - elapsedTime);
             if (timeLeft < 0) timeLeft = 0;
         } else {
             timerModes.custom.focus = focus;
@@ -1247,86 +1363,49 @@ function createNewSession() {
     };
     
     currentSessionId = sessionId;
-    console.log('📝 New session created:', currentSessionData);
-    saveSessionsToLocalStorage();
-    return currentSessionData;
-}
+    // currentSessionData is already set above
+    
+    // Add to sessions array
+    sessions.push(currentSessionData);
 
-function generateSessionSummary() {
-    if (!currentSessionData) return '';
-    
-    const completedTasks = currentSessionData.subtasks.filter(task => task.completed).length;
-    const totalTasks = currentSessionData.subtasks.length;
-    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    
-    if (completedTasks === 0) {
-        return `No tasks completed yet`;
-    } else if (completedTasks === totalTasks) {
-        return `All ${totalTasks} tasks completed! 🎉`;
-    } else {
-        return `${completedTasks}/${totalTasks} tasks completed (${completionRate}%)`;
-    }
-}
+    console.log(`✨ New session created: ${sessionId}`);
 
-function finishCurrentSession() {
-    if (!currentSessionData) return;
-    
-    const now = new Date();
-    currentSessionData.endTime = now.toISOString();
-    currentSessionData.duration = Math.round((now.getTime() - new Date(currentSessionData.startTime).getTime()) / 1000);
-    currentSessionData.summary = generateSessionSummary();
-    currentSessionData.tasksCompleted = currentSessionData.subtasks.filter(task => task.completed).length;
-    currentSessionData.status = 'completed';
-    
-    // Add to sessions history
-    const existingIndex = sessions.findIndex(s => s.id === currentSessionData.id);
-    if (existingIndex >= 0) {
-        sessions[existingIndex] = { ...currentSessionData };
-    } else {
-        sessions.unshift({ ...currentSessionData });
-    }
-    
-    console.log('✅ Session finished:', currentSessionData);
-    saveSessionsToLocalStorage();
+    saveToLocalStorage(); // Corrected function call
+
+    renderSessionHistory();
+    console.log('✅ Session created and saved successfully');
 }
 
 function updateCurrentSession() {
     if (!currentSessionData) return;
     
-    currentSessionData.mainTask = taskInput.value.trim();
-    currentSessionData.subtasks = [...subtasks];
-    currentSessionData.totalTasks = subtasks.length;
-    currentSessionData.tasksCompleted = subtasks.filter(task => task.completed).length;
-    currentSessionData.credits = credits;
-    currentSessionData.summary = generateSessionSummary();
+    const now = new Date();
+    currentSessionData.endTime = isRunning ? null : now.toISOString();
+    currentSessionData.duration = currentSessionData.endTime ? Math.round((new Date(currentSessionData.endTime) - new Date(currentSessionData.startTime)) / 1000) : 0;
     
-    // Update in sessions array if it exists
-    const existingIndex = sessions.findIndex(s => s.id === currentSessionData.id);
-    if (existingIndex >= 0) {
-        sessions[existingIndex] = { ...currentSessionData };
+    // Update in sessions array
+    const sessionIndex = sessions.findIndex(s => s.id === currentSessionId);
+    if (sessionIndex !== -1) {
+        sessions[sessionIndex] = { ...currentSessionData };
+        saveToLocalStorage();
     }
-    
-    saveSessionsToLocalStorage();
 }
 
 function restoreSession(sessionId) {
     const session = sessions.find(s => s.id === sessionId);
-    if (!session) {
-        console.error('❌ Session not found:', sessionId);
-        return;
-    }
+    if (!session) return;
     
-    // Restore task and subtasks
-    taskInput.value = session.mainTask || '';
-    subtasks = [...session.subtasks];
-    
-    // Restore credits (optional - you might want to keep current credits)
-    // credits = session.credits;
-    
-    // Update UI
-    renderSubtasks();
+    // Clear current data
+    resetTimer();
+    credits = session.credits;
     updateCredits();
-    saveToLocalStorage();
+    subtasks = session.subtasks;
+    activeMode = session.timerMode;
+    timeLeft = (session.duration || timerModes[activeMode].focus * 60) - (Date.now() - new Date(session.startTime)) / 1000;
+    isRunning = false;
+    isPaused = false;
+    isBreak = false;
+    sessionStartTime = null;
     
     // Set as current session
     currentSessionData = { ...session };
@@ -1349,7 +1428,7 @@ function deleteSession(sessionId) {
     const session = sessions[sessionIndex];
     if (confirm(`Are you sure you want to delete "${session.title}"?`)) {
         sessions.splice(sessionIndex, 1);
-        saveSessionsToLocalStorage();
+        saveToLocalStorage();
         renderSessionHistory();
         
         // If this was the current session, clear it
@@ -1380,7 +1459,7 @@ function clearAllSessions() {
         sessions = [];
         currentSessionId = null;
         currentSessionData = null;
-        saveSessionsToLocalStorage();
+        saveToLocalStorage();
         renderSessionHistory();
         
         showMessage({
@@ -1595,7 +1674,7 @@ function saveSettings() {
 
 // --- Initialize Functions ---
 function initializeApp() {
-    console.log('🎯 Initializing Pomodoro App...');
+    console.log('🎯 Initializing FocusFlow...');
     
     // Initialize DOM elements first (after modules are loaded)
     initializeDOMElements();
@@ -1651,7 +1730,32 @@ function handleTimerRestoration() {
     // Check if we need to resume a running timer
     if (isRunning && sessionStartTime && timeLeft > 0) {
         console.log('🔄 Resuming running timer...');
-        startTimer();
+        
+        // Start the countdown interval directly since isRunning is already true
+        timer = setInterval(() => {
+            if (!isPaused) {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    console.log('⏰ Timer reached 0, clearing interval and handling timer end...');
+                    clearInterval(timer);
+                    timer = null;
+                    handleTimerEnd();
+                }
+            }
+        }, 1000);
+        
+        // Update UI to show running state
+        if (startBtn) startBtn.classList.add('hidden');
+        if (pauseBtn) pauseBtn.classList.remove('hidden');
+        if (timerStatusEl) timerStatusEl.textContent = isBreak ? 'Break Time!' : 'Focus Time!';
+        
+        console.log('✅ Timer resumed successfully');
+    } else if (isRunning && sessionStartTime && timeLeft <= 0) {
+        console.log('⏰ Timer would have finished during offline time, completing session');
+        isRunning = false;
+        isPaused = false;
+        setTimeout(() => handleTimerEnd(), 100);
     }
     
     // Update timer ring color for break/focus state
@@ -1779,6 +1883,12 @@ function setupEventListeners() {
     }
     if (clearAllSessionsBtn) clearAllSessionsBtn.addEventListener('click', clearAllSessions);
     if (exportSessionsBtn) exportSessionsBtn.addEventListener('click', exportSessions);
+    
+    // Settings modal event listeners
+    if (settingsModalCancel) settingsModalCancel.addEventListener('click', hideSettingsModal);
+    if (settingsModalSave) settingsModalSave.addEventListener('click', saveSettings);
+    
+    // Session management - New Session button
     if (newSessionBtn) {
         newSessionBtn.addEventListener('click', () => {
             if (currentSessionData) {
@@ -1807,88 +1917,43 @@ function setupEventListeners() {
     }
     
     // Menu event listeners
-    if (menuToggle) menuToggle.addEventListener('click', toggleMenu);
-    if (menuNewSession) {
-        menuNewSession.addEventListener('click', () => {
+    if (menuToggle) menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent the window click listener from firing immediately
+
+
+        toggleMenu();
+    });
+    if (menuSettings) menuSettings.addEventListener('click', () => {
+        hideMenu();
+        showSettingsModal();
+    });
+    if (menuHistory) menuHistory.addEventListener('click', () => {
+        hideMenu();
+        if (sessionHistoryModal) sessionHistoryModal.classList.remove('hidden');
+    });
+    if (menuNewSession) menuNewSession.addEventListener('click', () => {
+        hideMenu();
+        createNewSession();
+    });
+    if (menuRestorePerks) menuRestorePerks.addEventListener('click', () => {
+        hideMenu();
+        restoreDefaultPerks();
+    });
+    
+    // Global listener to hide menu when clicking outside
+    window.addEventListener('click', (e) => {
+        if (menuDropdown && !menuDropdown.contains(e.target) && !menuToggle.contains(e.target)) {
             hideMenu();
-            if (currentSessionData) {
-                if (confirm('Start a new session? This will finish your current session and clear all tasks and subtasks. Credits and perks will be preserved.')) {
-                    finishCurrentSession();
-                    resetToDefaults();
-                    createNewSession();
-                    showMessage({
-                        mainText: "New Session Started!",
-                        subText: "Previous session saved to history. Ready for a fresh start!",
-                        emojis: "🆕✨"
-                    });
-                }
-            } else {
-                if (confirm('Start a new session? This will clear all tasks and subtasks. Credits and perks will be preserved.')) {
-                    resetToDefaults();
-                    createNewSession();
-                    showMessage({
-                        mainText: "New Session Started!",
-                        subText: "Fresh start with clean slate!",
-                        emojis: "🚀📝"
-                    });
-                }
-            }
-        });
-    }
-    if (menuHistory) {
-        menuHistory.addEventListener('click', () => {
-            hideMenu();
-            showSessionHistoryModal();
-        });
-    }
-    if (menuSettings) {
-        menuSettings.addEventListener('click', () => {
-            hideMenu();
-            showSettingsModal();
-        });
-    }
-    if (menuRestorePerks) {
-        menuRestorePerks.addEventListener('click', () => {
-            hideMenu();
-            restoreDefaultPerks();
-        });
-    }
-    
-    // Settings Modal event listeners
-    if (settingsModalSave) settingsModalSave.addEventListener('click', saveSettings);
-    if (settingsModalCancel) settingsModalCancel.addEventListener('click', hideSettingsModal);
-    
-    // Close settings modal when clicking outside
-    if (settingsModal) {
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) {
-                hideSettingsModal();
-            }
-        });
-    }
-    
-    // Handle Enter key in API key input
-    if (googleApiKeyInput) {
-        googleApiKeyInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                saveSettings();
-            }
-        });
-    }
-    
-    // Timer mode buttons (need to be set up after modules are loaded)
-    setupTimerModeButtons();
-    
-    // Keyboard shortcuts
-    setupKeyboardShortcuts();
-    
-    // Global click handler for menu
-    document.addEventListener('click', (event) => {
-        if (menuToggle && menuDropdown) {
-            if (!menuToggle.contains(event.target) && !menuDropdown.contains(event.target)) {
-                hideMenu();
-            }
         }
+    });
+    
+    // Prevent form submission from reloading the page
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log('Form submitted, but prevented page reload');
+        });
     });
 }
 
@@ -1938,108 +2003,217 @@ function setupKeyboardShortcuts() {
     });
 }
 
-// Make the initialization function available globally
-window.initializeApp = initializeApp;
-
-// --- Focused Subtask Functions ---
-let editingSubtaskIndex = -1; // -1 means adding new, >= 0 means editing existing
-
-function showAddSubtaskModal() {
-    editingSubtaskIndex = -1;
-    subtaskModalTitle.textContent = 'Add New Subtask';
-    subtaskModalSave.textContent = 'Add Task';
-    subtaskInput.value = '';
-    addSubtaskModal.classList.remove('hidden');
-    addSubtaskModal.classList.add('flex');
-    setTimeout(() => {
-        subtaskInput.focus();
-    }, 100);
-}
-
-function showEditSubtaskModal(index) {
-    editingSubtaskIndex = index;
-    subtaskModalTitle.textContent = 'Edit Subtask';
-    subtaskModalSave.textContent = 'Save Changes';
-    subtaskInput.value = subtasks[index].text;
-    addSubtaskModal.classList.remove('hidden');
-    addSubtaskModal.classList.add('flex');
-    setTimeout(() => {
-        subtaskInput.focus();
-        subtaskInput.select(); // Select all text for easy editing
-    }, 100);
-}
-
-function hideAddSubtaskModal() {
-    addSubtaskModal.classList.add('hidden');
-    addSubtaskModal.classList.remove('flex');
-    editingSubtaskIndex = -1;
-}
-
-function saveSubtaskFromModal() {
-    const taskText = subtaskInput.value.trim();
-    if (taskText) {
-        if (editingSubtaskIndex === -1) {
-            // Adding new subtask
-            subtasks.push({ text: taskText, completed: false });
-        } else {
-            // Editing existing subtask
-            subtasks[editingSubtaskIndex].text = taskText;
-        }
-        renderSubtasks();
-        saveToLocalStorage();
-        hideAddSubtaskModal();
+// --- Menu Functions ---
+function toggleMenu() {
+    if (menuDropdown) {
+        menuDropdown.classList.toggle('hidden');
+        console.log('Menu toggled');
     }
 }
 
-// Complete timer when it would have finished during page refresh
-function completeTimer() {
-    isRunning = false;
-    isPaused = false;
-    
-    if (!isBreak) {
-        // Focus session completed
-        credits++;
-        updateCredits();
-        
-        // Update session data
-        if (currentSessionData) {
-            currentSessionData.pomodorosCompleted++;
-            saveSessionsToLocalStorage();
+function hideMenu() {
+    if (menuDropdown && !menuDropdown.classList.contains('hidden')) {
+        menuDropdown.classList.add('hidden');
+        console.log('Menu hidden');
+    }
+}
+
+function restoreDefaultPerks() {
+    perks = getDefaultPerks();
+    saveToLocalStorage();
+    renderPerks();
+    showMessage({
+        text: "Default perks restored",
+        subText: "Your perks list has been reset.",
+        emojis: "🔄🎁"
+    });
+    console.log('🎁 Default perks restored.');
+}
+
+// --- Initialization ---
+function addEventListeners() {
+    // Timer controls
+    if (startBtn) startBtn.addEventListener('click', () => { 
+        console.log('🔘 Start button clicked, isRunning:', isRunning, 'isPaused:', isPaused);
+        if (isRunning) {
+            console.log('⚠️ Timer already running, ignoring click');
+        } else {
+            console.log('▶️ Starting/resuming timer');
+            startTimer();
         }
-        
-        showMessage({
-            mainText: "Great work! You earned 1 credit! 🎉", 
-            emojis: "🎯✨", 
-            subText: "Time for a well-deserved break!",
-            onClose: () => {
-                // Switch to break and auto-start
-                isBreak = true;
-                timeLeft = timerModes[activeMode].break * 60;
-                updateDisplay();
-                
-                // Trigger the start button click to begin break timer
-                if (startBtn) {
-                    startBtn.click();
+    });
+    if (pauseBtn) pauseBtn.addEventListener('click', () => {
+        console.log('⏸️ Pause button clicked');
+        pauseTimer();
+    });
+    if (resetBtn) resetBtn.addEventListener('click', resetTimer);
+    
+    // Task management
+    if (breakdownBtn) breakdownBtn.addEventListener('click', generateSubtasks);
+    if (addSubtaskBtn) addSubtaskBtn.addEventListener('click', addManualSubtask);
+    if (taskInput) {
+        taskInput.addEventListener('input', () => {
+            saveToLocalStorage();
+        });
+    }
+    
+    // Credits and perks
+    if (addPerkBtn) addPerkBtn.addEventListener('click', addPerk);
+    
+    // Theme toggle
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+            updateThemeIcons();
+        });
+    }
+    
+    // Modals
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent any form submission or page reload
+       
+        e.stopPropagation(); // Prevent event bubbling
+        console.log('🔘 Modal close button clicked');
+        hideMessage();
+    });
+    if (customTimerSave) customTimerSave.addEventListener('click', saveCustomTimer);
+    if (customTimerCancel) customTimerCancel.addEventListener('click', hideCustomTimerModal);
+    if (subtaskModalSave) subtaskModalSave.addEventListener('click', saveSubtaskFromModal);
+    if (subtaskModalCancel) subtaskModalCancel.addEventListener('click', hideAddSubtaskModal);
+    
+    // Add Perk Modal event listeners
+    if (perkModalSave) perkModalSave.addEventListener('click', savePerkFromModal);
+    if (perkModalCancel) perkModalCancel.addEventListener('click', closePerkModal);
+
+    // Close perk modal when clicking outside
+    if (addPerkModal) {
+        addPerkModal.addEventListener('click', (e) => {
+            if (e.target === addPerkModal) {
+                closePerkModal();
+            }
+        });
+    }
+
+    // Handle Enter key in perk modal inputs
+    if (perkNameModalInput) {
+        perkNameModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (perkCostModalInput) perkCostModalInput.focus();
+            }
+        });
+    }
+
+    if (perkCostModalInput) {
+        perkCostModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (perkInventoryModalInput) perkInventoryModalInput.focus();
+            }
+        });
+    }
+
+    if (perkInventoryModalInput) {
+        perkInventoryModalInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                savePerkFromModal();
+            }
+        });
+    }
+    
+    // Handle Enter key in subtask input
+    if (subtaskInput) {
+        subtaskInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                saveSubtaskFromModal();
+            }
+        });
+    }
+    
+    // Session management
+    if (sessionHistoryBtn) sessionHistoryBtn.addEventListener('click', showSessionHistoryModal);
+    if (sessionHistoryClose) {
+        sessionHistoryClose.addEventListener('click', () => {
+            sessionHistoryModal.classList.add('hidden');
+            sessionHistoryModal.classList.remove('flex');
+        });
+    }
+    if (clearAllSessionsBtn) clearAllSessionsBtn.addEventListener('click', clearAllSessions);
+    if (exportSessionsBtn) exportSessionsBtn.addEventListener('click', exportSessions);
+    
+    // Settings modal event listeners
+    if (settingsModalCancel) settingsModalCancel.addEventListener('click', hideSettingsModal);
+    if (settingsModalSave) settingsModalSave.addEventListener('click', saveSettings);
+    
+    // Session management - New Session button
+    if (newSessionBtn) {
+        newSessionBtn.addEventListener('click', () => {
+            if (currentSessionData) {
+                if (confirm('Start a new session? This will finish your current session and clear all tasks and subtasks. Credits and perks will be preserved.')) {
+                    finishCurrentSession();
+                    resetToDefaults();
+                    createNewSession();
+                    showMessage({
+                        mainText: "New Session Started!",
+                        subText: "Previous session saved to history. Ready for a fresh start!",
+                        emojis: "🆕✨"
+                    });
+                }
+            } else {
+                if (confirm('Start a new session? This will clear all tasks and subtasks. Credits and perks will be preserved.')) {
+                    resetToDefaults();
+                    createNewSession();
+                    showMessage({
+                        mainText: "New Session Started!",
+                        subText: "Fresh start with clean slate!",
+                        emojis: "🚀📝"
+                    });
                 }
             }
         });
-    } else {
-        // Break completed
-        showMessage({
-            mainText: "Break's over! Ready to focus again?", 
-            emojis: "💪🚀", 
-            subText: "Let's get back to work!",
-            onClose: () => {
-                // Switch back to focus (don't auto-start)
-                isBreak = false;
-                timeLeft = timerModes[activeMode].focus * 60;
-                updateDisplay();
-                saveToLocalStorage();
-            }
-        });
     }
     
-    resetTimer();
-    saveToLocalStorage();
+    // Menu event listeners
+    if (menuToggle) menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent the window click listener from firing immediately
+
+        toggleMenu();
+    });
+    if (menuSettings) menuSettings.addEventListener('click', () => {
+        hideMenu();
+        showSettingsModal();
+    });
+    if (menuHistory) menuHistory.addEventListener('click', () => {
+        hideMenu();
+        if (sessionHistoryModal) sessionHistoryModal.classList.remove('hidden');
+    });
+    if (menuNewSession) menuNewSession.addEventListener('click', () => {
+        hideMenu();
+        createNewSession();
+    });
+    if (menuRestorePerks) menuRestorePerks.addEventListener('click', () => {
+        hideMenu();
+        restoreDefaultPerks();
+    });
+    
+    // Global listener to hide menu when clicking outside
+    window.addEventListener('click', (e) => {
+        if (menuDropdown && !menuDropdown.contains(e.target) && !menuToggle.contains(e.target)) {
+            hideMenu();
+        }
+    });
+    
+    // Prevent form submission from reloading the page
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log('Form submitted, but prevented page reload');
+        });
+    });
 }
 
