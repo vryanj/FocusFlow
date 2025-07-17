@@ -6,9 +6,11 @@ let themeToggleBtn, themeToggleDarkIcon, themeToggleLightIcon, debugStartTimeEl;
 let messageModal, modalMessage, modalEmojis, modalSubMessage, modalCountdown, modalCountdownTimer, modalCloseBtn, modalActions;
 let customTimerModal, customFocusInput, customBreakInput, customTimerSave, customTimerCancel;
 let addSubtaskModal, subtaskModalTitle, subtaskInput, subtaskModalSave, subtaskModalCancel;
-let sessionHistoryBtn, newSessionBtn, sessionHistoryModal, sessionHistoryClose, sessionsListEl;
+let sessionHistoryBtn, sessionHistoryModal, sessionHistoryClose, sessionsListEl;
 let clearAllSessionsBtn, exportSessionsBtn;
 let settingsModal, settingsModalCancel, settingsModalSave, googleApiKeyInput;
+let menuToggle, menuDropdown, menuNewSession, menuHistory, menuSettings, menuRestorePerks;
+let confirmationModal, confirmationTitle, confirmationMessage, confirmationCancel, confirmationConfirm;
 
 // Function to initialize DOM elements after modules are loaded
 function initializeDOMElements() {
@@ -71,7 +73,6 @@ function initializeDOMElements() {
     
     // Session Management Elements
     sessionHistoryBtn = document.getElementById('session-history-btn');
-    newSessionBtn = document.getElementById('new-session-btn');
     sessionHistoryModal = document.getElementById('session-history-modal');
     sessionHistoryClose = document.getElementById('session-history-close');
     sessionsListEl = document.getElementById('sessions-list');
@@ -91,8 +92,13 @@ function initializeDOMElements() {
     settingsModalCancel = document.getElementById('settings-modal-cancel');
     settingsModalSave = document.getElementById('settings-modal-save');
     googleApiKeyInput = document.getElementById('google-api-key-input');
-    
-    console.log('🔗 DOM elements initialized after module loading');
+
+    // Confirmation Modal Elements
+    confirmationModal = document.getElementById('confirmation-modal');
+    confirmationTitle = document.getElementById('confirmation-title');
+    confirmationMessage = document.getElementById('confirmation-message');
+    confirmationCancel = document.getElementById('confirmation-cancel');
+    confirmationConfirm = document.getElementById('confirmation-confirm');
 }
 
 
@@ -145,52 +151,6 @@ function loadSessionsFromLocalStorage() {
             currentSessionData = sessions.find(s => s.id === currentSessionId) || null;
         }
     }
-    console.log('📂 Sessions loaded from localStorage.');
-}
-
-function renderSessionHistory() {
-    if (!sessionsListEl) {
-        // This can happen if the session history modal is not yet loaded/visible
-        console.warn('Session list element not found, skipping render.');
-        return;
-    }
-
-    sessionsListEl.innerHTML = ''; // Clear existing list
-
-    // Use the `sessions` array as the source of truth
-    const sessionsToRender = sessions || [];
-
-    if (sessionsToRender.length === 0) {
-        sessionsListEl.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 italic p-4">No sessions recorded yet.</p>';
-        return;
-    }
-
-    // Sort sessions by start time, newest first
-    const sortedSessions = [...sessionsToRender].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-
-    sortedSessions.forEach(session => {
-        const sessionEl = document.createElement('div');
-        sessionEl.className = 'p-3 border-b border-gray-200 dark:border-gray-700';
-
-        const startTime = new Date(session.startTime).toLocaleString();
-        const endTime = session.endTime ? new Date(session.endTime).toLocaleString() : 'In Progress';
-        const duration = session.endTime ? `${Math.round((new Date(session.endTime) - new Date(session.startTime)) / 60000)} mins` : '-';
-        const pomodoros = session.pomodorosCompleted || 0;
-
-        sessionEl.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="font-semibold text-gray-800 dark:text-gray-200">${session.task || 'Untitled Session'}</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">${startTime}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm font-medium">${pomodoros} 🍅</p>
-                    <p class="text-xs text-gray-400 dark:text-gray-500">${duration}</p>
-                </div>
-            </div>
-        `;
-        sessionsListEl.appendChild(sessionEl);
-    });
 }
 
 // --- LocalStorage Functions ---
@@ -213,20 +173,16 @@ function saveToLocalStorage() {
             sessionHistory: sessionHistory // Add session history to saved data
         };
         localStorage.setItem('pomodoroAppData', JSON.stringify(appData));
-        console.log('💾 Data saved to localStorage:', appData);
     } catch (error) {
-        console.error('❌ Error saving to localStorage:', error);
     }
 }
 
 function loadFromLocalStorage() {
     try {
         const saved = localStorage.getItem('pomodoroAppData');
-        console.log('🔍 Checking localStorage for saved data...');
         
         if (saved) {
             const appData = JSON.parse(saved);
-            console.log('📖 Found saved data:', appData);
             
             // Restore credits and perks
             credits = appData.credits || 0;
@@ -241,8 +197,6 @@ function loadFromLocalStorage() {
                 return perk;
             });
             
-            console.log('💰 Loaded credits:', credits);
-            console.log('🎁 Loaded perks (with inventory):', perks);
             
             // Restore subtasks
             subtasks = appData.subtasks || [];
@@ -268,13 +222,6 @@ function loadFromLocalStorage() {
                 isBreak = appData.timerState.isBreak || false;
                 sessionStartTime = appData.timerState.sessionStartTime || null;
                 
-                console.log('⏰ Restored timer state:', {
-                    timeLeft,
-                    isRunning,
-                    isPaused,
-                    isBreak,
-                    sessionStartTime
-                });
                 
                 // If timer was running when saved, calculate elapsed time and resume
                 if (isRunning && sessionStartTime) {
@@ -283,10 +230,8 @@ function loadFromLocalStorage() {
                     timeLeft = Math.max(0, Math.round(totalDuration - elapsedTime));
                     
                     if (timeLeft > 0) {
-                        console.log(`🔄 Resuming timer with ${Math.floor(timeLeft / 60)}:${String(Math.floor(timeLeft % 60)).padStart(2, '0')} remaining`);
                         // Will resume after DOM elements are initialized
                     } else {
-                        console.log('⏰ Timer would have finished, completing session');
                         isRunning = false;
                         isPaused = false;
                         // Will complete after DOM elements are initialized
@@ -306,76 +251,17 @@ function loadFromLocalStorage() {
             sessionHistory = appData.sessionHistory || [];
             renderSessionHistory();
 
-            console.log('✅ App data loaded from localStorage successfully');
         } else {
-            console.log('📝 No saved data found, using defaults');
         }
     } catch (error) {
-        console.error('❌ Error loading from localStorage:', error);
     }
 }
 
 function clearLocalStorage() {
     localStorage.removeItem('pomodoroAppData');
-    console.log('🗑️ LocalStorage cleared');
 }
 
-// Debug function to reset all data (can be called from console)
-function resetAllData() {
-    credits = 0;
-    perks = getDefaultPerks();
-    subtasks = [];
-    sessionHistory = [];
-    if (taskInput) taskInput.value = '';
-    clearLocalStorage();
-    updateCredits();
-    renderPerks();
-    renderSubtasks();
-    renderSessionHistory(); // Reset session history display
-    console.log('🔄 All data reset to defaults');
-}
 
-// Test function to verify localStorage is working
-function testLocalStorage() {
-    console.log('🧪 Testing localStorage...');
-    
-    // Test basic localStorage
-    try {
-        localStorage.setItem('test', 'working');
-        const test = localStorage.getItem('test');
-        localStorage.removeItem('test');
-        console.log('✅ Basic localStorage works:', test);
-    } catch (e) {
-        console.error('❌ Basic localStorage failed:', e);
-        return;
-    }
-    
-    // Test our save function
-    console.log('💾 Testing saveToLocalStorage...');
-    saveToLocalStorage();
-    
-    // Check what was saved
-    const saved = localStorage.getItem('pomodoroAppData');
-    if (saved) {
-        console.log('✅ Data saved successfully:', JSON.parse(saved));
-    } else {
-        console.error('❌ No data was saved');
-    }
-}
-
-// Debug function to test perks display (call from console)
-function debugPerks() {
-    console.log('🔍 Debug Perks Info:');
-    console.log('Credits:', credits);
-    console.log('Perks array:', perks);
-    console.log('creditCountEl element:', creditCountEl);
-    console.log('perksListEl element:', perksListEl);
-    console.log('Perks list innerHTML:', perksListEl ? perksListEl.innerHTML : 'Element not found');
-    
-    console.log('🔄 Forcing re-render...');
-    updateCredits();
-    renderPerks();
-}
 
 // --- Gemini API ---
 let API_KEY = null;
@@ -392,7 +278,6 @@ async function initializeAPI() {
         }
         
         if (!API_KEY) {
-            console.log('Google API key not configured. AI features will be disabled.');
             throw new Error('API key not configured');
         }
     }
@@ -408,7 +293,6 @@ async function callGemini(prompt) {
         const result = await response.json();
         return result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't get a response.";
     } catch (error) {
-        console.error('Gemini API Error:', error);
         return "Error contacting AI. Check console.";
     }
 }
@@ -460,13 +344,13 @@ async function generateSubtasks() {
             emojis: "✨🎯"
         });
     } catch (error) {
-        console.error('Error generating subtasks:', error);
         showMessage({
             text: "Failed to generate subtasks",
             subText: "Check your API key in Settings or try again",
             emojis: "❌🔧"
         });
-    } finally {
+    }
+    finally {
         breakdownBtn.disabled = false;
         breakdownBtn.innerHTML = '<span class="text-xl">✨</span> Generate Sub-tasks from above';
     }
@@ -533,7 +417,8 @@ function updateDisplay() {
         if (sessionStartTime) {
             const startDate = new Date(sessionStartTime);
             debugStartTimeEl.textContent = `Started: ${startDate.toLocaleTimeString()} | Elapsed: ${Math.floor((Date.now() - sessionStartTime) / 1000)}s`;
-        } else {
+        }
+        else {
             debugStartTimeEl.textContent = 'No active session';
         }
     }
@@ -544,12 +429,14 @@ function updateDisplay() {
             startBtn.classList.add('hidden');
             pauseBtn.classList.remove('hidden');
             timerStatusEl.textContent = isBreak ? 'Break Time!' : 'Focus Time!';
-        } else if (isPaused) {
+        }
+        else if (isPaused) {
             startBtn.classList.remove('hidden');
             pauseBtn.classList.add('hidden');
             startBtn.textContent = 'Resume';
             timerStatusEl.textContent = (isBreak ? 'Break Time!' : 'Focus Time!') + ' (Paused)';
-        } else {
+        }
+        else {
             startBtn.classList.remove('hidden');
             pauseBtn.classList.add('hidden');
             startBtn.textContent = 'Start';
@@ -565,10 +452,8 @@ function updateDisplay() {
 }
 
 function startTimer() {
-    console.log('▶️ startTimer called, isRunning:', isRunning, 'isBreak:', isBreak, 'timeLeft:', timeLeft);
     
     if (isRunning) {
-        console.log('⚠️ Timer already running, skipping start');
         return;
     }
     
@@ -577,7 +462,6 @@ function startTimer() {
         createNewSession();
     }
     
-    console.log('🚀 Starting timer...', isBreak ? 'BREAK' : 'FOCUS');
     isRunning = true;
     isPaused = false;
     sessionStartTime = Date.now() - ((isBreak ? timerModes[activeMode].break * 60 : timerModes[activeMode].focus * 60) - timeLeft) * 1000;
@@ -590,14 +474,12 @@ function startTimer() {
     // Save timer state
     saveToLocalStorage();
     
-    console.log('✅ Timer started successfully');
     
     timer = setInterval(() => {
         if (!isPaused) {
             timeLeft--;
             updateDisplay();
             if (timeLeft <= 0) {
-                console.log('⏰ Timer reached 0, clearing interval and handling timer end...');
                 clearInterval(timer);
                 timer = null; // Clear the timer reference
                 handleTimerEnd();
@@ -607,7 +489,6 @@ function startTimer() {
 }
 
 function pauseTimer() {
-    console.log('⏸️ pauseTimer called');
     isPaused = true;
     isRunning = false;
     clearInterval(timer);
@@ -616,7 +497,6 @@ function pauseTimer() {
     startBtn.classList.remove('hidden');
     startBtn.textContent = 'Resume';
     timerStatusEl.textContent += ' (Paused)';
-    console.log('✅ Timer paused successfully');
     
     // Save timer state
     saveToLocalStorage();
@@ -646,10 +526,8 @@ function resetTimer() {
 }
 
 async function handleTimerEnd() {
-    console.log('🎯 handleTimerEnd called, isBreak:', isBreak);
     
     if (!isBreak) {
-        console.log('⏸️ Focus session ended, pausing timer state...');
         // Pause the timer state properly
         isPaused = true;
         isRunning = false;
@@ -674,7 +552,6 @@ async function handleTimerEnd() {
         }
         
         // Prepare for break timer (but don't start yet)
-        console.log('🔄 Switching to break mode...');
         isBreak = true;
         timeLeft = timerModes[activeMode].break * 60;
         sessionStartTime = null; // Reset for break timer
@@ -686,21 +563,17 @@ async function handleTimerEnd() {
         // Update UI to show break is ready and paused
         updateDisplay();
         
-        console.log('📱 Showing completion modal...');
         // Show completion message and auto-start break when modal closes
         showMessage({
             mainText: `You've earned ${creditsEarned} credit(s)! 🎉`,
             subText: `${funnyMessage} Break time will start when you close this!`,
-            autoClose: true,
+            autoClose: false,
             onClose: () => {
-                console.log('🚪 Modal closed, starting break timer...');
-                console.log('📊 Timer state before start: isPaused=', isPaused, 'isRunning=', isRunning, 'isBreak=', isBreak);
                 // Simulate start button click to properly start the timer
                 if (startBtn) {
-                    console.log('🟢 Clicking start button to begin break...');
                     startBtn.click();
-                } else {
-                    console.error('❌ Start button not found!');
+                }
+                else {
                 }
             }
         });
@@ -715,14 +588,13 @@ async function handleTimerEnd() {
         };
         sessionHistory.push(sessionLog);
         saveToLocalStorage(); // Save session history to localStorage
-    } else {
+    }
+    else {
         // Break is over - pause the timer properly
-        console.log('⏸️ Break session ended, pausing timer state...');
         isPaused = true;
         isRunning = false;
         
         // Prepare for focus
-        console.log('🔄 Switching to focus mode...');
         isBreak = false;
         timeLeft = timerModes[activeMode].focus * 60;
         sessionStartTime = null;
@@ -734,21 +606,18 @@ async function handleTimerEnd() {
         // Update UI
         updateDisplay();
         
-        console.log('📱 Showing break-over modal...');
         showMessage({ 
             mainText: "Break's over! Ready for another focus session?", 
             subText: "🔥 Click Start when you're ready to work! 💪",
-            autoClose: true,
+            autoClose: false,
             onClose: () => {
                 // Don't auto-start focus timer, let user start manually
-                console.log('🚪 Modal closed. Ready for next focus session.');
                 // Reset to fresh state - not paused, ready to start
                 if (startBtn) {
                     isPaused = false;
                     isRunning = false;
                     startBtn.textContent = 'Start';
                     updateDisplay();
-                    console.log('✅ Focus timer ready to start manually');
                 }
             }
         });
@@ -772,7 +641,8 @@ function renderSubtasks() {
     subtasksContainer.innerHTML = '';
     if (subtasks.length === 0) {
         subtasksContainer.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 italic">No sub-tasks yet. Generate them or add one manually!</p>`;
-    } else {
+    }
+    else {
         subtasks.forEach((task, index) => {
             const taskEl = document.createElement('div');
             taskEl.className = 'flex items-center bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-600 p-3 rounded-lg gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
@@ -783,7 +653,7 @@ function renderSubtasks() {
                     <i class="fa-solid fa-grip-vertical"></i>
                 </div>
                 <input type="checkbox" ${task.completed ? 'checked' : ''} class="h-5 w-5 rounded text-indigo-500 focus:ring-indigo-500 border-gray-300 dark:border-gray-500 shrink-0" onchange="toggleSubtask(${index})">
-                <span class="flex-grow text-gray-800 dark:text-gray-200 ${task.completed ? 'line-through text-gray-500' : ''} cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 rounded px-2 py-1 transition-colors" onclick="editSubtask(${index})" title="Click to edit">${task.text}</span>
+                <span class="flex-grow text-gray-800 dark:text-gray-100 ${task.completed ? 'line-through text-gray-500' : ''} cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 rounded px-2 py-1 transition-colors" onclick="editSubtask(${index})" title="Click to edit">${task.text}</span>
                  <button class="p-1 hover:bg-red-200 dark:hover:bg-red-800 rounded-full text-red-500 shrink-0" onclick="deleteSubtask(${index})">
                     <i class="fa-solid fa-trash"></i>
                 </button>
@@ -963,7 +833,8 @@ function saveSubtaskFromModal() {
     if (editingIndex !== undefined && editingIndex !== null) {
         // Editing existing subtask
         subtasks[editingIndex].text = newText;
-    } else {
+    }
+    else {
         // Adding new subtask
         subtasks.push({ text: newText, completed: false });
     }
@@ -983,7 +854,6 @@ function updateCredits() {
 }
 function renderPerks() {
     if (!perksListEl) {
-        console.error('❌ perksListEl not found!');
         return;
     }
     
@@ -1004,7 +874,6 @@ function renderPerks() {
         return a.name.localeCompare(b.name); // Alphabetical ascending
     });
     
-    console.log('🔄 Sorted perks:', sortedPerks.map(p => `${p.name} (${p.cost}c, ${p.inventory || 0} left)`));
     
     perksListEl.innerHTML = '';
     sortedPerks.forEach((perk) => {
@@ -1030,9 +899,11 @@ function renderPerks() {
         if (perk.inventory !== undefined) {
             if (perk.inventory === 0) {
                 inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-red-500 text-white text-center leading-none" title="Sold Out">×</span>`;
-            } else if (perk.inventory <= 2) {
+            }
+            else if (perk.inventory <= 2) {
                 inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-orange-500 text-white text-center leading-none" title="${perk.inventory} Left">${perk.inventory}</span>`;
-            } else {
+            }
+            else {
                 inventoryBadge = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-green-500 text-white text-center leading-none" title="${perk.inventory} Left">${perk.inventory}</span>`;
             }
         }
@@ -1077,7 +948,7 @@ function savePerkFromModal() {
         closePerkModal();
         saveToLocalStorage(); // Save when perk is added
         showMessage({mainText: `Perk "${name}" added successfully! (${inventory} available)`});
-    } 
+    }
     else { showMessage({mainText: 'Please enter a valid perk name, cost, and inventory.'}); }
 }
 
@@ -1124,22 +995,6 @@ function purchasePerk(index) {
     });
 }
 
-function restoreDefaultPerks() {
-    if (confirm('Are you sure you want to restore default perks? This will remove all custom perks you have added.')) {
-        perks = getDefaultPerks();
-        renderPerks();
-        saveToLocalStorage();
-        
-        showMessage({
-            mainText: "Default Perks Restored!",
-            subText: "All custom perks have been removed and default perks restored.",
-            emojis: "🔄✨"
-        });
-        
-        console.log('🔄 Perks restored to default values');
-    }
-}
-
 // --- Modal Functions ---
 let autoCloseTimer = null;
 let countdownInterval = null;
@@ -1150,7 +1005,6 @@ function showMessage({ mainText, text, subText = '', emojis = '', autoClose = tr
     // Support both old format (mainText) and new format (text)
     const messageText = text || mainText;
     
-    console.log('📱 showMessage called:', messageText);
     modalClosing = false; // Reset the flag for new message
     
     modalMessage.textContent = messageText;
@@ -1173,7 +1027,8 @@ function showMessage({ mainText, text, subText = '', emojis = '', autoClose = tr
         modalEmojis.textContent = emojis;
         modalSubMessage.textContent = subText;
         modalEmojis.classList.remove('hidden');
-    } else {
+    }
+    else {
         // Regex to find all emoji characters, including newer ones
         const emojiRegex = /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F)/gu;
         const foundEmojis = subText.match(emojiRegex);
@@ -1186,7 +1041,10 @@ function showMessage({ mainText, text, subText = '', emojis = '', autoClose = tr
     
     modalMessage.classList.remove('hidden');
     modalMessage.classList.add('flex');
-    setTimeout(() => modalMessage.querySelector('div').classList.remove('scale-95'), 10);
+    setTimeout(() => {
+        const modalDiv = modalMessage.querySelector('div');
+        if (modalDiv) modalDiv.classList.remove('scale-95');
+    }, 10);
     
     if (autoClose) {
         // Auto-close after 3 seconds
@@ -1210,7 +1068,8 @@ function showMessage({ mainText, text, subText = '', emojis = '', autoClose = tr
                 hideMessage();
             }
         }, 1000);
-    } else {
+    }
+    else {
         // Ensure countdown is hidden if not needed
         modalCountdown.classList.add('hidden');
         modalCountdown.classList.remove('flex');
@@ -1248,16 +1107,13 @@ function showMessage({ mainText, text, subText = '', emojis = '', autoClose = tr
     setTimeout(() => messageModal.querySelector('div').classList.remove('scale-95'), 10);
 }
 function hideMessage() {
-    console.log('🚪 hideMessage called, modalClosing=', modalClosing);
     
     // Prevent double execution
     if (modalClosing) {
-        console.log('⚠️ Modal already closing, ignoring call');
         return;
     }
     modalClosing = true;
     
-    console.log('📊 Current timer state: isRunning=', isRunning, 'isPaused=', isPaused, 'isBreak=', isBreak, 'timeLeft=', timeLeft);
     
     // Clear any active timers
     if (autoCloseTimer) {
@@ -1277,22 +1133,20 @@ function hideMessage() {
     
     // Execute onClose callback if it exists
     if (modalOnCloseCallback) {
-        console.log('🔄 Executing onClose callback...');
         const callback = modalOnCloseCallback;
         modalOnCloseCallback = null; // Clear the callback
         try {
             callback();
-        } catch (error) {
-            console.error('❌ Error in onClose callback:', error);
         }
-    } else {
-        console.log('ℹ️ No onClose callback to execute');
+        catch (error) {
+        }
+    }
+    else {
     }
     
     // Reset the flag after a short delay
     setTimeout(() => {
         modalClosing = false;
-        console.log('✅ hideMessage completed, modal ready for next use');
     }, 100);
 }
 function showCustomTimerModal() {
@@ -1321,7 +1175,8 @@ function saveCustomTimer() {
             const newTotalDuration = timerModes[activeMode].focus * 60;
             timeLeft = Math.round(newTotalDuration - elapsedTime);
             if (timeLeft < 0) timeLeft = 0;
-        } else {
+        }
+        else {
             timerModes.custom.focus = focus;
             timerModes.custom.break = breakT;
             timerModes.custom.name = `${focus}/${breakT}`;
@@ -1331,7 +1186,8 @@ function saveCustomTimer() {
         renderTimerModeButtons();
         updateDisplay();
         hideCustomTimerModal();
-    } else {
+    }
+    else {
         showMessage({mainText: "Please enter valid numbers for focus and break time."});
     }
 }
@@ -1368,12 +1224,10 @@ function createNewSession() {
     // Add to sessions array
     sessions.push(currentSessionData);
 
-    console.log(`✨ New session created: ${sessionId}`);
 
     saveToLocalStorage(); // Corrected function call
 
     renderSessionHistory();
-    console.log('✅ Session created and saved successfully');
 }
 
 function updateCurrentSession() {
@@ -1411,7 +1265,6 @@ function restoreSession(sessionId) {
     currentSessionData = { ...session };
     currentSessionId = sessionId;
     
-    console.log('🔄 Session restored:', session);
     hideSessionHistoryModal();
     
     showMessage({
@@ -1426,23 +1279,27 @@ function deleteSession(sessionId) {
     if (sessionIndex === -1) return;
     
     const session = sessions[sessionIndex];
-    if (confirm(`Are you sure you want to delete "${session.title}"?`)) {
-        sessions.splice(sessionIndex, 1);
-        saveToLocalStorage();
-        renderSessionHistory();
-        
-        // If this was the current session, clear it
-        if (currentSessionId === sessionId) {
-            currentSessionId = null;
-            currentSessionData = null;
+    showConfirmationModal({
+        title: `Delete Session?`,
+        message: `Are you sure you want to delete "${session.title}"?`,
+        onConfirm: () => {
+            sessions.splice(sessionIndex, 1);
+            saveToLocalStorage();
+            renderSessionHistory();
+            
+            // If this was the current session, clear it
+            if (currentSessionId === sessionId) {
+                currentSessionId = null;
+                currentSessionData = null;
+            }
+            
+            showMessage({
+                mainText: "Session Deleted",
+                subText: "Session removed from history",
+                emojis: "🗑️"
+            });
         }
-        
-        showMessage({
-            mainText: "Session Deleted",
-            subText: "Session removed from history",
-            emojis: "🗑️"
-        });
-    }
+    });
 }
 
 function clearAllSessions() {
@@ -1455,19 +1312,23 @@ function clearAllSessions() {
         return;
     }
     
-    if (confirm(`Are you sure you want to delete all ${sessions.length} sessions? This cannot be undone.`)) {
-        sessions = [];
-        currentSessionId = null;
-        currentSessionData = null;
-        saveToLocalStorage();
-        renderSessionHistory();
-        
-        showMessage({
-            mainText: "All Sessions Cleared",
-            subText: "Session history has been reset",
-            emojis: "🗑️✨"
-        });
-    }
+    showConfirmationModal({
+        title: 'Delete All Sessions?',
+        message: `Are you sure you want to delete all ${sessions.length} sessions? This cannot be undone.`,
+        onConfirm: () => {
+            sessions = [];
+            currentSessionId = null;
+            currentSessionData = null;
+            saveToLocalStorage();
+            renderSessionHistory();
+            
+            showMessage({
+                mainText: "All Sessions Cleared",
+                subText: "Session history has been reset",
+                emojis: "🗑️✨"
+            });
+        }
+    });
 }
 
 function exportSessions() {
@@ -1511,7 +1372,8 @@ function formatDuration(seconds) {
     
     if (hours > 0) {
         return `${hours}h ${minutes}m`;
-    } else {
+    }
+    else {
         return `${minutes}m`;
     }
 }
@@ -1650,17 +1512,16 @@ function saveSettings() {
         localStorage.setItem('google_api_key', apiKeyValue);
         // Clear the cached API key so it gets reloaded
         API_KEY = null;
-        console.log('✅ Google API key saved successfully');
         
         showMessage({
             text: "Settings saved successfully!",
             subText: "AI features are now available",
             emojis: "⚙️✅"
         });
-    } else {
+    }
+    else {
         localStorage.removeItem('google_api_key');
         API_KEY = null;
-        console.log('🗑️ Google API key removed');
         
         showMessage({
             text: "API key removed",
@@ -1674,7 +1535,6 @@ function saveSettings() {
 
 // --- Initialize Functions ---
 function initializeApp() {
-    console.log('🎯 Initializing FocusFlow...');
     
     // Initialize DOM elements first (after modules are loaded)
     initializeDOMElements();
@@ -1684,7 +1544,8 @@ function initializeApp() {
         if (document.documentElement.classList.contains('dark')) {
             if (themeToggleLightIcon) themeToggleLightIcon.classList.remove('hidden');
             if (themeToggleDarkIcon) themeToggleDarkIcon.classList.add('hidden');
-        } else {
+        }
+        else {
             if (themeToggleDarkIcon) themeToggleDarkIcon.classList.remove('hidden');
             if (themeToggleLightIcon) themeToggleLightIcon.classList.add('hidden');
         }
@@ -1715,21 +1576,17 @@ function initializeApp() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
-                console.log('SW registered: ', registration);
             })
             .catch((registrationError) => {
-                console.log('SW registration failed: ', registrationError);
             });
     }
     
-    console.log('✅ Pomodoro App initialized successfully');
 }
 
 // Handle timer restoration after app initialization
 function handleTimerRestoration() {
     // Check if we need to resume a running timer
     if (isRunning && sessionStartTime && timeLeft > 0) {
-        console.log('🔄 Resuming running timer...');
         
         // Start the countdown interval directly since isRunning is already true
         timer = setInterval(() => {
@@ -1737,7 +1594,6 @@ function handleTimerRestoration() {
                 timeLeft--;
                 updateDisplay();
                 if (timeLeft <= 0) {
-                    console.log('⏰ Timer reached 0, clearing interval and handling timer end...');
                     clearInterval(timer);
                     timer = null;
                     handleTimerEnd();
@@ -1750,9 +1606,8 @@ function handleTimerRestoration() {
         if (pauseBtn) pauseBtn.classList.remove('hidden');
         if (timerStatusEl) timerStatusEl.textContent = isBreak ? 'Break Time!' : 'Focus Time!';
         
-        console.log('✅ Timer resumed successfully');
-    } else if (isRunning && sessionStartTime && timeLeft <= 0) {
-        console.log('⏰ Timer would have finished during offline time, completing session');
+    }
+    else if (isRunning && sessionStartTime && timeLeft <= 0) {
         isRunning = false;
         isPaused = false;
         setTimeout(() => handleTimerEnd(), 100);
@@ -1764,7 +1619,6 @@ function handleTimerRestoration() {
         timerRing.classList.add(isBreak ? 'text-green-500' : 'text-indigo-500');
     }
     
-    console.log('✅ Timer restoration complete');
 }
 
 // Setup all event listeners
@@ -1774,16 +1628,13 @@ function setupEventListeners() {
     
     // Timer controls
     if (startBtn) startBtn.addEventListener('click', () => { 
-        console.log('🔘 Start button clicked, isRunning:', isRunning, 'isPaused:', isPaused);
         if (isRunning) {
-            console.log('⚠️ Timer already running, ignoring click');
-        } else {
-            console.log('▶️ Starting/resuming timer');
+        }
+        else {
             startTimer();
         }
     });
     if (pauseBtn) pauseBtn.addEventListener('click', () => {
-        console.log('⏸️ Pause button clicked');
         pauseTimer();
     });
     if (resetBtn) resetBtn.addEventListener('click', resetTimer);
@@ -1806,7 +1657,8 @@ function setupEventListeners() {
             document.documentElement.classList.toggle('dark');
             if (document.documentElement.classList.contains('dark')) {
                 localStorage.setItem('theme', 'dark');
-            } else {
+            }
+            else {
                 localStorage.setItem('theme', 'light');
             }
             updateThemeIcons();
@@ -1817,7 +1669,6 @@ function setupEventListeners() {
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', (e) => {
         e.preventDefault(); // Prevent any form submission or page reload
         e.stopPropagation(); // Prevent event bubbling
-        console.log('🔘 Modal close button clicked');
         hideMessage();
     });
     if (customTimerSave) customTimerSave.addEventListener('click', saveCustomTimer);
@@ -1888,38 +1739,18 @@ function setupEventListeners() {
     if (settingsModalCancel) settingsModalCancel.addEventListener('click', hideSettingsModal);
     if (settingsModalSave) settingsModalSave.addEventListener('click', saveSettings);
     
-    // Session management - New Session button
-    if (newSessionBtn) {
-        newSessionBtn.addEventListener('click', () => {
-            if (currentSessionData) {
-                if (confirm('Start a new session? This will finish your current session and clear all tasks and subtasks. Credits and perks will be preserved.')) {
-                    finishCurrentSession();
-                    resetToDefaults();
-                    createNewSession();
-                    showMessage({
-                        mainText: "New Session Started!",
-                        subText: "Previous session saved to history. Ready for a fresh start!",
-                        emojis: "🆕✨"
-                    });
-                }
-            } else {
-                if (confirm('Start a new session? This will clear all tasks and subtasks. Credits and perks will be preserved.')) {
-                    resetToDefaults();
-                    createNewSession();
-                    showMessage({
-                        mainText: "New Session Started!",
-                        subText: "Fresh start with clean slate!",
-                        emojis: "🚀📝"
-                    });
-                }
-            }
-        });
-    }
-    
+    // Confirmation Modal event listeners
+    if (confirmationCancel) confirmationCancel.addEventListener('click', hideConfirmationModal);
+    if (confirmationConfirm) confirmationConfirm.addEventListener('click', () => {
+        if (confirmationCallback) {
+            confirmationCallback();
+        }
+        hideConfirmationModal();
+    });
+
     // Menu event listeners
     if (menuToggle) menuToggle.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent the window click listener from firing immediately
-
 
         toggleMenu();
     });
@@ -1933,7 +1764,38 @@ function setupEventListeners() {
     });
     if (menuNewSession) menuNewSession.addEventListener('click', () => {
         hideMenu();
-        createNewSession();
+        // Use the same logic as the newSessionBtn
+        if (currentSessionData) {
+            showConfirmationModal({
+                title: 'Start a new session?',
+                message: 'This will finish your current session and clear all tasks and subtasks. Credits and perks will be preserved.',
+                onConfirm: () => {
+                    finishCurrentSession();
+                    resetToDefaults();
+                    createNewSession();
+                    showMessage({
+                        mainText: "New Session Started!",
+                        subText: "Previous session saved to history. Ready for a fresh start!",
+                        emojis: "🆕✨"
+                    });
+                }
+            });
+        }
+        else {
+            showConfirmationModal({
+                title: 'Start a new session?',
+                message: 'This will clear all tasks and subtasks. Credits and perks will be preserved.',
+                onConfirm: () => {
+                    resetToDefaults();
+                    createNewSession();
+                    showMessage({
+                        mainText: "New Session Started!",
+                        subText: "Fresh start with clean slate!",
+                        emojis: "🚀📝"
+                    });
+                }
+            });
+        }
     });
     if (menuRestorePerks) menuRestorePerks.addEventListener('click', () => {
         hideMenu();
@@ -1952,7 +1814,6 @@ function setupEventListeners() {
     forms.forEach(form => {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            console.log('Form submitted, but prevented page reload');
         });
     });
 }
@@ -1980,9 +1841,10 @@ function setupKeyboardShortcuts() {
         // Space bar to start/pause timer
         if (e.code === 'Space' && !e.target.matches('input, textarea')) {
             e.preventDefault();
-            if (isActive) {
+            if (isRunning) {
                 pauseTimer();
-            } else {
+            }
+            else {
                 startTimer();
             }
         }
@@ -1995,10 +1857,11 @@ function setupKeyboardShortcuts() {
         
         // Escape key to close modals
         if (e.code === 'Escape') {
-            closeModal();
-            closeCustomTimerModal();
+            hideMessage();
+            hideCustomTimerModal();
             hideAddSubtaskModal();
-            closeSessionHistory();
+            hideSessionHistoryModal();
+            hideConfirmationModal();
         }
     });
 }
@@ -2007,213 +1870,83 @@ function setupKeyboardShortcuts() {
 function toggleMenu() {
     if (menuDropdown) {
         menuDropdown.classList.toggle('hidden');
-        console.log('Menu toggled');
     }
 }
 
 function hideMenu() {
     if (menuDropdown && !menuDropdown.classList.contains('hidden')) {
         menuDropdown.classList.add('hidden');
-        console.log('Menu hidden');
     }
+}
+
+// --- Confirmation Modal Functions ---
+let confirmationCallback = null;
+
+function showConfirmationModal({ title, message, onConfirm }) {
+    confirmationTitle.textContent = title;
+    confirmationMessage.textContent = message;
+    confirmationCallback = onConfirm;
+    confirmationModal.classList.remove('hidden');
+    confirmationModal.classList.add('flex');
+}
+
+function hideConfirmationModal() {
+    confirmationModal.classList.add('hidden');
+    confirmationModal.classList.remove('flex');
+    confirmationCallback = null;
 }
 
 function restoreDefaultPerks() {
-    perks = getDefaultPerks();
-    saveToLocalStorage();
-    renderPerks();
-    showMessage({
-        text: "Default perks restored",
-        subText: "Your perks list has been reset.",
-        emojis: "🔄🎁"
-    });
-    console.log('🎁 Default perks restored.');
-}
-
-// --- Initialization ---
-function addEventListeners() {
-    // Timer controls
-    if (startBtn) startBtn.addEventListener('click', () => { 
-        console.log('🔘 Start button clicked, isRunning:', isRunning, 'isPaused:', isPaused);
-        if (isRunning) {
-            console.log('⚠️ Timer already running, ignoring click');
-        } else {
-            console.log('▶️ Starting/resuming timer');
-            startTimer();
-        }
-    });
-    if (pauseBtn) pauseBtn.addEventListener('click', () => {
-        console.log('⏸️ Pause button clicked');
-        pauseTimer();
-    });
-    if (resetBtn) resetBtn.addEventListener('click', resetTimer);
-    
-    // Task management
-    if (breakdownBtn) breakdownBtn.addEventListener('click', generateSubtasks);
-    if (addSubtaskBtn) addSubtaskBtn.addEventListener('click', addManualSubtask);
-    if (taskInput) {
-        taskInput.addEventListener('input', () => {
+    showConfirmationModal({
+        title: 'Restore Default Perks?',
+        message: 'Are you sure you want to restore default perks? This will remove all custom perks you have added.',
+        onConfirm: () => {
+            perks = getDefaultPerks();
+            renderPerks();
             saveToLocalStorage();
-        });
-    }
-    
-    // Credits and perks
-    if (addPerkBtn) addPerkBtn.addEventListener('click', addPerk);
-    
-    // Theme toggle
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            if (document.documentElement.classList.contains('dark')) {
-                localStorage.setItem('theme', 'dark');
-            } else {
-                localStorage.setItem('theme', 'light');
-            }
-            updateThemeIcons();
-        });
-    }
-    
-    // Modals
-    if (modalCloseBtn) modalCloseBtn.addEventListener('click', (e) => {
-        e.preventDefault(); // Prevent any form submission or page reload
-       
-        e.stopPropagation(); // Prevent event bubbling
-        console.log('🔘 Modal close button clicked');
-        hideMessage();
-    });
-    if (customTimerSave) customTimerSave.addEventListener('click', saveCustomTimer);
-    if (customTimerCancel) customTimerCancel.addEventListener('click', hideCustomTimerModal);
-    if (subtaskModalSave) subtaskModalSave.addEventListener('click', saveSubtaskFromModal);
-    if (subtaskModalCancel) subtaskModalCancel.addEventListener('click', hideAddSubtaskModal);
-    
-    // Add Perk Modal event listeners
-    if (perkModalSave) perkModalSave.addEventListener('click', savePerkFromModal);
-    if (perkModalCancel) perkModalCancel.addEventListener('click', closePerkModal);
-
-    // Close perk modal when clicking outside
-    if (addPerkModal) {
-        addPerkModal.addEventListener('click', (e) => {
-            if (e.target === addPerkModal) {
-                closePerkModal();
-            }
-        });
-    }
-
-    // Handle Enter key in perk modal inputs
-    if (perkNameModalInput) {
-        perkNameModalInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (perkCostModalInput) perkCostModalInput.focus();
-            }
-        });
-    }
-
-    if (perkCostModalInput) {
-        perkCostModalInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (perkInventoryModalInput) perkInventoryModalInput.focus();
-            }
-        });
-    }
-
-    if (perkInventoryModalInput) {
-        perkInventoryModalInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                savePerkFromModal();
-            }
-        });
-    }
-    
-    // Handle Enter key in subtask input
-    if (subtaskInput) {
-        subtaskInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                saveSubtaskFromModal();
-            }
-        });
-    }
-    
-    // Session management
-    if (sessionHistoryBtn) sessionHistoryBtn.addEventListener('click', showSessionHistoryModal);
-    if (sessionHistoryClose) {
-        sessionHistoryClose.addEventListener('click', () => {
-            sessionHistoryModal.classList.add('hidden');
-            sessionHistoryModal.classList.remove('flex');
-        });
-    }
-    if (clearAllSessionsBtn) clearAllSessionsBtn.addEventListener('click', clearAllSessions);
-    if (exportSessionsBtn) exportSessionsBtn.addEventListener('click', exportSessions);
-    
-    // Settings modal event listeners
-    if (settingsModalCancel) settingsModalCancel.addEventListener('click', hideSettingsModal);
-    if (settingsModalSave) settingsModalSave.addEventListener('click', saveSettings);
-    
-    // Session management - New Session button
-    if (newSessionBtn) {
-        newSessionBtn.addEventListener('click', () => {
-            if (currentSessionData) {
-                if (confirm('Start a new session? This will finish your current session and clear all tasks and subtasks. Credits and perks will be preserved.')) {
-                    finishCurrentSession();
-                    resetToDefaults();
-                    createNewSession();
-                    showMessage({
-                        mainText: "New Session Started!",
-                        subText: "Previous session saved to history. Ready for a fresh start!",
-                        emojis: "🆕✨"
-                    });
-                }
-            } else {
-                if (confirm('Start a new session? This will clear all tasks and subtasks. Credits and perks will be preserved.')) {
-                    resetToDefaults();
-                    createNewSession();
-                    showMessage({
-                        mainText: "New Session Started!",
-                        subText: "Fresh start with clean slate!",
-                        emojis: "🚀📝"
-                    });
-                }
-            }
-        });
-    }
-    
-    // Menu event listeners
-    if (menuToggle) menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent the window click listener from firing immediately
-
-        toggleMenu();
-    });
-    if (menuSettings) menuSettings.addEventListener('click', () => {
-        hideMenu();
-        showSettingsModal();
-    });
-    if (menuHistory) menuHistory.addEventListener('click', () => {
-        hideMenu();
-        if (sessionHistoryModal) sessionHistoryModal.classList.remove('hidden');
-    });
-    if (menuNewSession) menuNewSession.addEventListener('click', () => {
-        hideMenu();
-        createNewSession();
-    });
-    if (menuRestorePerks) menuRestorePerks.addEventListener('click', () => {
-        hideMenu();
-        restoreDefaultPerks();
-    });
-    
-    // Global listener to hide menu when clicking outside
-    window.addEventListener('click', (e) => {
-        if (menuDropdown && !menuDropdown.contains(e.target) && !menuToggle.contains(e.target)) {
-            hideMenu();
+            
+            showMessage({
+                mainText: "Default Perks Restored!",
+                subText: "All custom perks have been removed and default perks restored.",
+                emojis: "🔄✨"
+            });
         }
-    });
-    
-    // Prevent form submission from reloading the page
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            console.log('Form submitted, but prevented page reload');
-        });
     });
 }
 
+// --- Session Management Helper Functions ---
+function finishCurrentSession() {
+    if (!currentSessionData) return;
+    
+    // Update the current session with completion time
+    const now = new Date();
+    currentSessionData.endTime = now.toISOString();
+    currentSessionData.duration = Math.round((now - new Date(currentSessionData.startTime)) / 1000);
+    currentSessionData.status = 'completed';
+    
+    // Update in sessions array
+    const sessionIndex = sessions.findIndex(s => s.id === currentSessionId);
+    if (sessionIndex !== -1) {
+        sessions[sessionIndex] = { ...currentSessionData };
+        saveToLocalStorage();
+    }
+    
+}
+
+function resetToDefaults() {
+    // Reset timer
+    resetTimer();
+    
+    // Clear current session data
+    currentSessionData = null;
+    currentSessionId = null;
+    
+    // Clear tasks and subtasks
+    subtasks = [];
+    if (taskInput) taskInput.value = '';
+    
+    // Re-render components
+    renderSubtasks();
+    renderSessionHistory();
+    
+}
