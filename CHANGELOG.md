@@ -16,13 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved service worker cache management
 - Better error handling in service worker registration
 
-## [1.1.0] - 2025-01-XX
+## [1.1.0] - 2025-07-18
 
 ### Added
 - **PWA Auto-Update System**: Automatic update detection and user notifications
 - **Enhanced Service Worker**: Version-based caching with automatic cleanup
 - **Update Notifications**: Users are notified when new versions are available
 - **Seamless Updates**: One-click update process without data loss
+- **Versioning System**: Comprehensive semantic versioning with automated management
+- **Changelog**: Detailed change tracking following Keep a Changelog format
 
 ### Changed
 - **App Name**: Updated from "Focus Pomo" to "FocusFlow" throughout the app
@@ -39,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Migration Scripts**: Removed `migrate-to-modular.js` (no longer needed)
 - **Documentation**: Removed `MODULAR_REFACTOR.md` (migration complete)
 
-## [1.0.0] - 2025-01-XX
+## [1.0.0] - 2025-07-11
 
 ### Added
 - **Core Pomodoro Timer**: 25/5, 50/10, and custom timer modes
@@ -80,8 +82,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
-- **1.1.0**: PWA auto-updates, app name fixes, repository cleanup
-- **1.0.0**: Initial release with core Pomodoro functionality
+- **1.1.0** (2025-07-18): PWA auto-updates, app name fixes, repository cleanup, versioning system
+- **1.0.0** (2025-07-11): Initial release with core Pomodoro functionality
 
 ## Contributing
 

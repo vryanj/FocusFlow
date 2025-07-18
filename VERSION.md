@@ -10,8 +10,8 @@ This project follows [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PAT
 - **PATCH** version for backwards-compatible bug fixes
 
 ### Version History
-- **1.1.0** - PWA auto-updates, app name fixes, repository cleanup
-- **1.0.0** - Initial release with core Pomodoro functionality
+- **1.1.0** (2025-07-18) - PWA auto-updates, app name fixes, repository cleanup, versioning system
+- **1.0.0** (2025-07-11) - Initial release with core Pomodoro functionality
 
 ### How to Update Version
 
