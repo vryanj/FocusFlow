@@ -3,92 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusFlow - Gamified Pomodoro Timer</title>
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <link rel="shortcut icon" href="favicon.ico">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="FocusFlow">
-    
-    <!-- Microsoft Tiles -->
-    <meta name="msapplication-TileColor" content="#4f46e5">
-    <meta name="msapplication-TileImage" content="ms-icon-144x144.png">
-    
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#4f46e5">
-    
-    <!-- Local CSS Assets -->
+    <title>Pomodoro Timer - Modular Version</title>
     <link rel="stylesheet" href="assets/css/output.css">
-    
-    <!-- Tailwind CSS Configuration -->
-    <script>
-        // Configuration for Tailwind CSS to enable class-based dark mode
-        tailwind = {
-          config: {
-            darkMode: 'class',
-            theme: {
-              extend: {
-                fontFamily: {
-                  'inter': ['Inter', 'sans-serif'],
-                }
-              }
-            }
-          }
-        };
-    </script>
-    <script>
-        // This script is placed in the head to prevent a flash of unstyled content (FOUC)
-        // It immediately applies the 'dark' class to the <html> tag if needed.
-        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
+    <link rel="stylesheet" href="assets/fonts/inter.css">
+    <link rel="stylesheet" href="assets/webfonts/fa-solid-900.woff2">
+    <link rel="stylesheet" href="assets/webfonts/fa-regular-400.woff2">
+    <link rel="stylesheet" href="assets/webfonts/fa-brands-400.woff2">
+    <style>
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 900;
+            src: url('assets/webfonts/fa-solid-900.woff2') format('woff2');
         }
-    </script>
+        @font-face {
+            font-family: 'Font Awesome 6 Free';
+            font-style: normal;
+            font-weight: 400;
+            src: url('assets/webfonts/fa-regular-400.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Font Awesome 6 Brands';
+            font-style: normal;
+            font-weight: 400;
+            src: url('assets/webfonts/fa-brands-400.woff2') format('woff2');
+        }
+        .fa-solid:before { font-family: 'Font Awesome 6 Free'; font-weight: 900; }
+        .fa-regular:before { font-family: 'Font Awesome 6 Free'; font-weight: 400; }
+        .fa-brands:before { font-family: 'Font Awesome 6 Brands'; font-weight: 400; }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-gray-100 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950 min-h-screen transition-colors duration-300">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
+    <!-- Load the modular app -->
+    <script src="js/app-modular.js"></script>
     
-    <!-- Navigation -->
-    <div id="navigation-container"></div>
-
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white">FocusFlow</h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">Your journey to productivity, one Pomodoro at a time.</p>
-        </header>
-
-        <main class="flex flex-col gap-8 max-w-4xl mx-auto">
-            <!-- Timer Section -->
-            <div id="timer-container"></div>
+    <!-- Include the HTML modules -->
+    <script>
+        // Load HTML modules
+        fetch('modules/timer.html')
+            .then(response => response.text())
+            .then(html => {
+                document.body.insertAdjacentHTML('afterbegin', html);
+            });
             
-            <!-- Task Management Section -->
-            <div id="task-management-container"></div>
+        fetch('modules/navigation.html')
+            .then(response => response.text())
+            .then(html => {
+                document.body.insertAdjacentHTML('afterbegin', html);
+            });
             
-            <!-- Credits & Perks Section -->
-            <div id="credits-perks-container"></div>
-        </main>
-        
-        <!-- Footer -->
-        <footer class="mt-12 py-6 text-center border-t border-gray-200 dark:border-gray-700">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                © June 19, 2025 by Von Ryan Javillonar
-            </p>
-        </footer>
-    </div>
-
-    <!-- Modals -->
-    <div id="modals-container"></div>
-
-    <!-- JavaScript will be loaded here by the module loader -->
-    <script src="js/module-loader.js"></script>
+        fetch('modules/task-management.html')
+            .then(response => response.text())
+            .then(html => {
+                document.body.insertAdjacentHTML('beforeend', html);
+            });
+            
+        fetch('modules/credits-perks.html')
+            .then(response => response.text())
+            .then(html => {
+                document.body.insertAdjacentHTML('beforeend', html);
+            });
+            
+        fetch('modules/modals.html')
+            .then(response => response.text())
+            .then(html => {
+                document.body.insertAdjacentHTML('beforeend', html);
+            });
+    </script>
 </body>
 </html>
