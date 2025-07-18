@@ -1,6 +1,6 @@
 {
-  "name": "Focus Pomodoro - AI Productivity Timer",
-  "short_name": "Focus Pomo",
+  "name": "FocusFlow - AI Productivity Timer",
+  "short_name": "FocusFlow",
   "description": "An AI-powered Pomodoro timer to boost your productivity with tasks, credits, and perks.",
   "start_url": ".",
   "display": "standalone",
