@@ -1,5 +1,5 @@
-// A unique name for the cache
-const CACHE_NAME = 'focusflow-cache-v1';
+// A unique name for the cache - update this version when you deploy changes
+const CACHE_NAME = 'focusflow-cache-v1.1.0';
 
 // List of local files to cache
 const urlsToCache = [
@@ -62,6 +62,7 @@ const urlsToCache = [
 
 // Install event: fires when the service worker is first installed.
 self.addEventListener('install', event => {
+    console.log('Service Worker: Installing...');
     // Perform install steps
     event.waitUntil(
         caches.open(CACHE_NAME)
@@ -74,6 +75,8 @@ self.addEventListener('install', event => {
             });
         })
     );
+    // Force the waiting service worker to become the active service worker
+    self.skipWaiting();
 });
 
 // Fetch event: fires for every network request.
@@ -117,9 +120,9 @@ self.addEventListener('fetch', event => {
     // For non-local assets, you might want a different strategy or just let them be fetched normally.
 });
 
-
 // Activate event: fires when the service worker is activated.
 self.addEventListener('activate', event => {
+    console.log('Service Worker: Activating...');
     const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -132,6 +135,16 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
+        }).then(() => {
+            // Take control of all clients immediately
+            return self.clients.claim();
         })
     );
+});
+
+// Listen for messages from the main app
+self.addEventListener('message', event => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });

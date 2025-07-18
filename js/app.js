@@ -1576,8 +1576,21 @@ function initializeApp() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
             .then((registration) => {
+                console.log('Service Worker registered successfully');
+                
+                // Check for updates
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            // New version available
+                            showUpdateNotification();
+                        }
+                    });
+                });
             })
             .catch((registrationError) => {
+                console.error('Service Worker registration failed:', registrationError);
             });
     }
     
@@ -1911,6 +1924,31 @@ function restoreDefaultPerks() {
                 emojis: "🔄✨"
             });
         }
+    });
+}
+
+// PWA Update Notification
+function showUpdateNotification() {
+    showMessage({
+        text: "New version available!",
+        subText: "A new version of FocusFlow is ready to install",
+        emojis: "🔄✨",
+        autoClose: false,
+        actions: [
+            {
+                text: "Update Now",
+                action: () => {
+                    // Send message to service worker to skip waiting
+                    if (navigator.serviceWorker.controller) {
+                        navigator.serviceWorker.controller.postMessage({
+                            type: 'SKIP_WAITING'
+                        });
+                    }
+                    // Reload the page to activate the new service worker
+                    window.location.reload();
+                }
+            }
+        ]
     });
 }
 
