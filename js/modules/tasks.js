@@ -30,7 +30,7 @@ function renderSubtasks() {
     else {
         subtasks.forEach((task, index) => {
             const taskEl = document.createElement('div');
-            taskEl.className = 'flex items-center bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-600 p-3 rounded-lg gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
+            taskEl.className = 'flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 p-3 rounded-lg gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
             taskEl.draggable = true;
             taskEl.dataset.index = index;
             taskEl.innerHTML = `
@@ -38,7 +38,7 @@ function renderSubtasks() {
                     <i class="fa-solid fa-grip-vertical"></i>
                 </div>
                 <input type="checkbox" ${task.completed ? 'checked' : ''} class="h-5 w-5 rounded text-indigo-500 focus:ring-indigo-500 border-gray-300 dark:border-gray-500 shrink-0" onchange="window.taskManager.toggleSubtask(${index})">
-                <span class="flex-grow text-gray-800 dark:text-gray-100 ${task.completed ? 'line-through text-gray-500' : ''} cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 rounded px-2 py-1 transition-colors" onclick="window.taskManager.editSubtask(${index})" title="Click to edit">${task.text}</span>
+                <span class="flex-grow text-gray-800 dark:text-gray-100 ${task.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''} cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 rounded px-2 py-1 transition-colors" onclick="window.taskManager.editSubtask(${index})" title="Click to edit">${task.text}</span>
                  <button class="p-1 hover:bg-red-200 dark:hover:bg-red-800 rounded-full text-red-500 shrink-0" onclick="window.taskManager.deleteSubtask(${index})">
                     <i class="fa-solid fa-trash"></i>
                 </button>

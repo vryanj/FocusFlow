@@ -645,7 +645,7 @@ function renderSubtasks() {
     else {
         subtasks.forEach((task, index) => {
             const taskEl = document.createElement('div');
-            taskEl.className = 'flex items-center bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-600 p-3 rounded-lg gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
+            taskEl.className = 'flex items-center bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 p-3 rounded-lg gap-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors';
             taskEl.draggable = true;
             taskEl.dataset.index = index;
             taskEl.innerHTML = `
@@ -888,7 +888,7 @@ function renderPerks() {
         // Enhanced styling for different states with better backgrounds
         perkEl.className = `flex items-center justify-between p-4 rounded-lg gap-3 transition-all cursor-pointer ${
             isOutOfStock 
-                ? 'bg-gray-50 dark:bg-gray-750 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700' 
+                ? 'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700' 
                 : cannotAfford
                 ? 'bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/40'
                 : 'bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:shadow-md'
