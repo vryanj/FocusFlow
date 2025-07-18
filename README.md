@@ -103,6 +103,7 @@ FocusFlow is a full-featured PWA that works offline:
 - **Storage**: LocalStorage with automatic state management
 - **PWA**: Service Worker for offline functionality
 - **Icons**: Font Awesome & Custom SVG icons
+- **Versioning**: Semantic Versioning with automated version management
 
 ## 🤝 Contributing
 
@@ -122,6 +123,32 @@ npm install
 # Start development server
 npm run dev
 ```
+
+### Version Management
+FocusFlow uses semantic versioning with automated version management:
+
+```bash
+# Check current version
+npm run version
+
+# Bump patch version (1.1.0 → 1.1.1)
+npm run version:patch
+
+# Bump minor version (1.1.0 → 1.2.0)
+npm run version:minor
+
+# Bump major version (1.1.0 → 2.0.0)
+npm run version:major
+
+# Sync version across all files
+npm run version:sync
+```
+
+**Version Files:**
+- `VERSION.md` - Single source of truth
+- `package.json` - NPM version
+- `sw.js` - PWA cache version
+- `CHANGELOG.md` - Detailed change history
 
 ## 📄 License
 

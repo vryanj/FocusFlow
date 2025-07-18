@@ -1,6 +1,6 @@
 {
   "name": "focusflow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "FocusFlow - Gamified Pomodoro timer with credit rewards and AI task breakdown",
   "main": "index.html",
   "scripts": {
@@ -10,7 +10,12 @@
     "download-fonts": "node scripts/download-fonts.js",
     "copy-fontawesome": "node scripts/copy-fontawesome.js",
     "build": "npm run build-css && npm run download-fonts && npm run copy-fontawesome",
-    "dev": "npm run watch-css"
+    "dev": "npm run watch-css",
+    "version": "node -p \"require('./package.json').version\"",
+    "version:patch": "npm version patch && node scripts/version.js",
+    "version:minor": "npm version minor && node scripts/version.js",
+    "version:major": "npm version major && node scripts/version.js",
+    "version:sync": "node scripts/version.js"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
